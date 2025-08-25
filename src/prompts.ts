@@ -12,7 +12,7 @@ export function getIdeasPrompt(
   Rating: ${rating}
   Style: ${style}
 
-  Provide the output in JSON format, following this schema: { "id": number, "title": string, "premise": string, "mainCharacters": string[], "setting": string }`;
+  Provide the output in JSON format, following this schema: { "id": number, "title": string, "premise": string, "mainCharacters": string[], "setting": string[] }`;
 }
 
 export function getOutlinePrompt(idea: StoryIdea, maxChapters: number): string {
@@ -22,7 +22,7 @@ export function getOutlinePrompt(idea: StoryIdea, maxChapters: number): string {
   Title: ${idea.title}
   Premise: ${idea.premise}
   Main Characters: ${idea.mainCharacters.join(', ')}
-  Setting: ${idea.setting}
+  Setting: ${idea.settings.join(', ')}
 
   Provide the output in JSON format, following this schema: { "title": string, "chapters": { "number": number, "title": string, "summary": string }[] }`;
 }
@@ -43,7 +43,7 @@ export function getSettingsPrompt(idea: StoryIdea): string {
   Generate descriptions for the main settings in the following story idea:
 
   Title: ${idea.title}
-  Setting: ${idea.setting}
+  Setting: ${idea.settings}
 
   Provide the output in JSON format, following this schema: { "name": string, "description": string }`;
 }
@@ -59,7 +59,7 @@ export function getChapterScenesPrompt(chapter: Chapter, characters: Character[]
 
   Available characters: ${characterNames}
   ${settingsList}
-  
+
   Provide the output in JSON format, following this schema: { "number": number, "title": string, "summary": string, "characters": string[], "settings": string[] }`;
 }
 
@@ -77,6 +77,11 @@ export function getSceneProsePrompt(scene: Scene, chapter: Chapter, previousScen
     Scene Summary: ${scene.summary}
 
     Style Guidelines: Maintain a consistent style, tone and rating.
+
+    Make sure to have plenty of realistic dialogue, and be sure to show don’t tell, and use deep point of view. Write in a very slow pace, building the story with in-depth character development and world building
+
+    Characters in this scene: ${scene.characters.join(', ')}
+    Settings in this scene: ${scene.settings.join(', ')}
 
     Provide the output in JSON format, following this schema: { "text": string }`;
 }

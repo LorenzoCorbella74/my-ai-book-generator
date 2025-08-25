@@ -5,7 +5,7 @@ export const StoryIdeaSchema = z.object({
   title: z.string(),
   premise: z.string(),
   mainCharacters: z.array(z.string()),
-  setting: z.string(),
+  settings: z.array(z.string()),
 });
 
 export const ChapterSchema = z.object({

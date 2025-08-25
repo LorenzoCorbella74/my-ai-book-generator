@@ -11,7 +11,7 @@
     "cli",
     "typescript"
   ],
-  "author": "",
+  "author": "Lorenzo Corbella",
   "license": "ISC",
   "dependencies": {
     "ai": "^5.0.23",
