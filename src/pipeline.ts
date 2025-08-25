@@ -1,0 +1,158 @@
+import { generate } from './ai';
+import { z } from 'zod';
+import {
+  getIdeasPrompt,
+  getOutlinePrompt,
+  getCharactersPrompt,
+  getSettingsPrompt,
+  getChapterScenesPrompt,
+  getSceneProsePrompt,
+  systemPrompts,
+} from './prompts';
+import {
+  StoryIdeaSchema,
+  StoryOutlineSchema,
+  CharacterSchema,
+  SettingSchema,
+  RawSceneSchema,
+  SceneSchema,
+  StoryIdea,
+  StoryOutline,
+  Character,
+  Setting,
+  RawScene,
+  Scene,
+  Chapter,
+} from './models';
+import * as fs from 'fs/promises';
+
+interface Stat {
+  step: string;
+  time: number;
+}
+
+interface Context {
+  genre: string;
+  tone: string;
+  rating: string;
+  style: string;
+  maxChapters: number;
+  idea?: StoryIdea;
+  outline?: StoryOutline;
+  characters?: Character[];
+  settings?: Setting[];
+  scenes?: Scene[];
+  stats: Stat[];
+}
+
+export async function generateIdeas(context: Context): Promise<StoryIdea[]> {
+  console.log('🤔 Generating ideas...');
+  const ideasStart = Date.now();
+  const ideasPrompt = getIdeasPrompt(context.genre, context.tone, context.rating, context.style);
+  const ideas = await generate(ideasPrompt, StoryIdeaSchema.array(), undefined, systemPrompts.ideas);
+  console.log(ideas);
+  context.stats.push({ step: 'ideas', time: Date.now() - ideasStart });
+  return ideas;
+}
+
+export async function runPipeline(context: Context) {
+  if (!context.idea) {
+    throw new Error('No idea selected');
+  }
+
+  console.log('📝 Generating outline...');
+  const outlineStart = Date.now();
+  const outlinePrompt = getOutlinePrompt(context.idea, context.maxChapters);
+  context.outline = await generate(outlinePrompt, StoryOutlineSchema, undefined, systemPrompts.outline);
+  console.log('OUTLINE: ',context.outline);
+  context.stats.push({ step: 'outline', time: Date.now() - outlineStart });
+
+  console.log('👥 Generating characters...');
+  const charactersStart = Date.now();
+  const charactersPrompt = getCharactersPrompt(context.idea);
+  context.characters = await generate(charactersPrompt, CharacterSchema.array(), undefined, systemPrompts.characters);
+  console.log('CHARACTERS: ', context.characters);
+  context.stats.push({ step: 'characters', time: Date.now() - charactersStart });
+
+  console.log('🏞️ Generating settings...');
+  const settingsStart = Date.now();
+  const settingsPrompt = getSettingsPrompt(context.idea);
+  context.settings = await generate(settingsPrompt, SettingSchema.array(), undefined, systemPrompts.settings);
+  console.log('SETTINGS:',context.settings);
+  context.stats.push({ step: 'settings', time: Date.now() - settingsStart });
+
+  console.log('🎬 Generating scenes and prose...');
+  context.scenes = [];
+  if (context.outline && context.characters) {
+    for (const chapter of context.outline.chapters) {
+      console.log(`  📖 Generating scenes for chapter ${chapter.number}...`);
+      const chapterScenesStart = Date.now();
+      const chapterScenesPrompt = getChapterScenesPrompt(chapter, context.characters, context.settings?.map(s => s.name));
+      const rawScenes = await generate(chapterScenesPrompt, RawSceneSchema.array(), undefined, systemPrompts.scenes);
+      context.stats.push({ step: `chapter-${chapter.number}-scenes`, time: Date.now() - chapterScenesStart });
+
+      let previousScenes: Scene[] = [];
+      for (const rawScene of rawScenes) {
+        console.log(`    ✍️ Generating prose for scene ${rawScene.number}...`);
+        const sceneProseStart = Date.now();
+        const scene: Scene = { ...rawScene, chapterNumber: chapter.number };
+        const sceneProsePrompt = getSceneProsePrompt(scene, chapter, previousScenes);
+        const prose = await generate(sceneProsePrompt, z.object({ text: z.string() }), undefined, systemPrompts.prose);
+        scene.text = prose.text;
+        context.scenes.push(scene);
+        previousScenes.push(scene);
+        context.stats.push({ step: `chapter-${chapter.number}-scene-${rawScene.number}-prose`, time: Date.now() - sceneProseStart });
+      }
+    }
+  }
+
+  console.log('🚀 Exporting story...');
+  await exportStory(context);
+  await exportStats(context);
+}
+
+async function exportStory(context: Context) {
+  if (!context.outline || !context.scenes) {
+    return;
+  }
+
+  let markdown = `# ${context.outline.title}\n\n`;
+
+  markdown += '## Index\n\n';
+  for (const chapter of context.outline.chapters) {
+    markdown += `* [Chapter ${chapter.number}: ${chapter.title}](#chapter-${chapter.number})\n`;
+    const chapterScenes = context.scenes.filter((s) => s.chapterNumber === chapter.number);
+    for (const scene of chapterScenes) {
+      markdown += `  * [Scene ${scene.number}: ${scene.title}](#scene-${chapter.number}-${scene.number})\n`;
+    }
+  }
+  markdown += '\n';
+
+  for (const chapter of context.outline.chapters) {
+    markdown += `<a name="chapter-${chapter.number}"></a>\n`;
+    markdown += `## Chapter ${chapter.number}: ${chapter.title}\n\n`;
+    const chapterScenes = context.scenes.filter((s) => s.chapterNumber === chapter.number);
+    for (const scene of chapterScenes) {
+      markdown += `<a name="scene-${chapter.number}-${scene.number}"></a>\n`;
+      markdown += `### Scene ${scene.number}: ${scene.title}\n\n`;
+      markdown += `${scene.text}\n\n`;
+    }
+  }
+
+  await fs.writeFile('story.md', markdown);
+}
+
+async function exportStats(context: Context) {
+  let markdown = '# Generation Stats\n\n';
+  markdown += '| Step | Time (ms)|\n';
+  markdown += '|------|-----------|\n';
+  let totalMs = 0;
+  for (const stat of context.stats) {
+    markdown += `| ${stat.step} | ${stat.time} |\n`;
+    totalMs += stat.time;
+  }
+  const totalMinutes = (totalMs / 60000).toFixed(2);
+  markdown += `\n**Total time:** ${totalMinutes} minutes\n`;
+
+  await fs.writeFile('stats.md', markdown);
+}
