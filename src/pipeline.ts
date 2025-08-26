@@ -26,16 +26,26 @@ import {
 } from './models';
 import * as fs from 'fs/promises';
 
+// Helper to write files in output/<book title> folder
+async function writeOutputFile(context: Context, filename: string, data: string) {
+  const title = context.outline ? context.outline.title : 'unknown_book';
+  const outputDir = `output/${title.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/ /g, '_')}`;
+  await fs.mkdir(outputDir, { recursive: true });
+  await fs.writeFile(`${outputDir}/${filename}`, data);
+}
+
 interface Stat {
   step: string;
   time: number;
 }
 
 interface Context {
-  genre: string;
-  tone: string;
+  genre: string[] | string;
+  tone: string[] | string;
   rating: string;
-  style: string;
+  style: string[] | string;
+  targetAudience: string[] | string;
+  language: string;
   maxChapters: number;
   idea?: StoryIdea;
   outline?: StoryOutline;
@@ -46,9 +56,15 @@ interface Context {
 }
 
 export async function generateIdeas(context: Context): Promise<StoryIdea[]> {
-  console.log('🤔 Generating ideas...');
   const ideasStart = Date.now();
-  const ideasPrompt = getIdeasPrompt(context.genre, context.tone, context.rating, context.style);
+    const ideasPrompt = getIdeasPrompt(
+      context.genre,
+      context.tone,
+      context.rating,
+      context.style,
+      context.targetAudience,
+      context.language
+    );
   const ideas = await generate(ideasPrompt, StoryIdeaSchema.array(), undefined, systemPrompts.ideas);
   console.log(ideas);
   context.stats.push({ step: 'ideas', time: Date.now() - ideasStart });
@@ -62,23 +78,23 @@ export async function runPipeline(context: Context) {
 
   console.log('📝 Generating outline...');
   const outlineStart = Date.now();
-  const outlinePrompt = getOutlinePrompt(context.idea, context.maxChapters);
+  const outlinePrompt = getOutlinePrompt(context.idea, context.maxChapters, context.language);
   context.outline = await generate(outlinePrompt, StoryOutlineSchema, undefined, systemPrompts.outline);
-  console.log('OUTLINE: ',context.outline);
+  console.log('OUTLINE: ', context.outline);
   context.stats.push({ step: 'outline', time: Date.now() - outlineStart });
 
   console.log('👥 Generating characters...');
   const charactersStart = Date.now();
-  const charactersPrompt = getCharactersPrompt(context.idea);
+  const charactersPrompt = getCharactersPrompt(context.idea, context.language);
   context.characters = await generate(charactersPrompt, CharacterSchema.array(), undefined, systemPrompts.characters);
   console.log('CHARACTERS: ', context.characters);
   context.stats.push({ step: 'characters', time: Date.now() - charactersStart });
 
   console.log('🏞️ Generating settings...');
   const settingsStart = Date.now();
-  const settingsPrompt = getSettingsPrompt(context.idea);
+  const settingsPrompt = getSettingsPrompt(context.idea, context.language);
   context.settings = await generate(settingsPrompt, SettingSchema.array(), undefined, systemPrompts.settings);
-  console.log('SETTINGS:',context.settings);
+  console.log('SETTINGS:', context.settings);
   context.stats.push({ step: 'settings', time: Date.now() - settingsStart });
 
   console.log('🎬 Generating scenes and prose...');
@@ -87,7 +103,7 @@ export async function runPipeline(context: Context) {
     for (const chapter of context.outline.chapters) {
       console.log(`  📖 Generating scenes for chapter ${chapter.number}...`);
       const chapterScenesStart = Date.now();
-      const chapterScenesPrompt = getChapterScenesPrompt(chapter, context.characters, context.settings?.map(s => s.name));
+      const chapterScenesPrompt = getChapterScenesPrompt(chapter, context.characters, context.settings?.map(s => s.name), context.language);
       const rawScenes = await generate(chapterScenesPrompt, RawSceneSchema.array(), undefined, systemPrompts.scenes);
       context.stats.push({ step: `chapter-${chapter.number}-scenes`, time: Date.now() - chapterScenesStart });
 
@@ -96,7 +112,7 @@ export async function runPipeline(context: Context) {
         console.log(`    ✍️ Generating prose for scene ${rawScene.number}...`);
         const sceneProseStart = Date.now();
         const scene: Scene = { ...rawScene, chapterNumber: chapter.number };
-        const sceneProsePrompt = getSceneProsePrompt(scene, chapter, previousScenes);
+        const sceneProsePrompt = getSceneProsePrompt(scene, chapter, previousScenes, context.language);
         const prose = await generate(sceneProsePrompt, z.object({ text: z.string() }), undefined, systemPrompts.prose);
         scene.text = prose.text;
         context.scenes.push(scene);
@@ -107,6 +123,7 @@ export async function runPipeline(context: Context) {
   }
 
   console.log('🚀 Exporting story...');
+
   await exportStory(context);
   await exportStats(context);
 }
@@ -129,22 +146,23 @@ async function exportStory(context: Context) {
   markdown += '\n';
 
   for (const chapter of context.outline.chapters) {
-    markdown += `<a name="chapter-${chapter.number}"></a>\n`;
+    markdown += `<a name=\"chapter-${chapter.number}\"></a>\n`;
     markdown += `## Chapter ${chapter.number}: ${chapter.title}\n\n`;
     const chapterScenes = context.scenes.filter((s) => s.chapterNumber === chapter.number);
     for (const scene of chapterScenes) {
-      markdown += `<a name="scene-${chapter.number}-${scene.number}"></a>\n`;
+      markdown += `<a name=\"scene-${chapter.number}-${scene.number}\"></a>\n`;
       markdown += `### Scene ${scene.number}: ${scene.title}\n\n`;
       markdown += `${scene.text}\n\n`;
     }
   }
 
-  await fs.writeFile('story.md', markdown);
+  await writeOutputFile(context, 'story.md', markdown);
+  await writeOutputFile(context, 'context.json', JSON.stringify(context, null, 2));
 }
 
 async function exportStats(context: Context) {
   let markdown = '# Generation Stats\n\n';
-  markdown += '| Step | Time (ms)|\n';
+  markdown += '| Step | Time (min)|\n';
   markdown += '|------|-----------|\n';
   let totalMs = 0;
   for (const stat of context.stats) {
@@ -154,5 +172,5 @@ async function exportStats(context: Context) {
   const totalMinutes = (totalMs / 60000).toFixed(2);
   markdown += `\n**Total time:** ${totalMinutes} minutes\n`;
 
-  await fs.writeFile('stats.md', markdown);
+  await writeOutputFile(context, 'stats.md', markdown);
 }

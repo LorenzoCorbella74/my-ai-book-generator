@@ -1,21 +1,32 @@
 import { Chapter, StoryIdea, StoryOutline, Character, Setting, Scene } from './models';
 
 export function getIdeasPrompt(
-  genre: string,
-  tone: string,
+  genre: string[] | string,
+  tone: string[] | string,
   rating: string,
-  style: string): string {
+  style: string[] | string,
+  targetAudience: string[] | string,
+    language: string
+): string {
+  const genreStr = Array.isArray(genre) ? genre.join(', ') : genre;
+  const toneStr = Array.isArray(tone) ? tone.join(', ') : tone;
+  const styleStr = Array.isArray(style) ? style.join(', ') : style;
+  const audienceStr = Array.isArray(targetAudience) ? targetAudience.join(', ') : targetAudience;
   return `
   Generate 5 unique story ideas for a short story.
-  Genre: ${genre}
-  Tone: ${tone}
+  
+  Language: ${language}
+  Each story should have a title, a three-sentence premise, a list of 3-5 main characters, and a brief name and description of 3-5 main settings.
+  Genre(s): ${genreStr}
+  Tone(s): ${toneStr}
   Rating: ${rating}
-  Style: ${style}
+  Style(s): ${styleStr}
+  Target Audience(s): ${audienceStr}
 
   Provide the output in JSON format, following this schema: { "id": number, "title": string, "premise": string, "mainCharacters": string[], "setting": string[] }`;
 }
 
-export function getOutlinePrompt(idea: StoryIdea, maxChapters: number): string {
+export function getOutlinePrompt(idea: StoryIdea, maxChapters: number, language: string): string {
   return `
   Generate a story outline with a maximum of ${maxChapters} chapters for the following story idea:
 
@@ -23,32 +34,35 @@ export function getOutlinePrompt(idea: StoryIdea, maxChapters: number): string {
   Premise: ${idea.premise}
   Main Characters: ${idea.mainCharacters.join(', ')}
   Setting: ${idea.settings.join(', ')}
+  Language: ${language || 'English'}
 
   Provide the output in JSON format, following this schema: { "title": string, "chapters": { "number": number, "title": string, "summary": string }[] }`;
 }
 
-export function getCharactersPrompt(idea: StoryIdea): string {
+export function getCharactersPrompt(idea: StoryIdea, language: string): string {
   return `
   Generate character profiles for the main characters in the following story idea:
 
   Title: ${idea.title}
   Premise: ${idea.premise}
   Main Characters: ${idea.mainCharacters.join(', ')}
+  Language: ${language || 'English'}
 
   Provide the output in JSON format, following this schema: { "name": string, "role": string, "description": string, "relations": { "type": string, "with": string }[] }`;
 }
 
-export function getSettingsPrompt(idea: StoryIdea): string {
+export function getSettingsPrompt(idea: StoryIdea, language: string): string {
   return `
   Generate descriptions for the main settings in the following story idea:
 
   Title: ${idea.title}
   Setting: ${idea.settings}
+  Language: ${language || 'English'}
 
   Provide the output in JSON format, following this schema: { "name": string, "description": string }`;
 }
 
-export function getChapterScenesPrompt(chapter: Chapter, characters: Character[], settings?: string[]): string {
+export function getChapterScenesPrompt(chapter: Chapter, characters: Character[], settings: string[] = [], language: string): string {
   const characterNames = characters.map(c => c.name).join(', ');
   const settingsList = settings && settings.length > 0 ? `\nAvailable settings: ${settings.join(', ')}` : '';
   return `
@@ -56,21 +70,24 @@ export function getChapterScenesPrompt(chapter: Chapter, characters: Character[]
 
   Chapter ${chapter.number}: ${chapter.title}
   Summary: ${chapter.summary}
+  Language: ${language || 'English'}
 
-  Available characters: ${characterNames}
+  Refer to the following characters: 
+  ${characterNames}
+  Refer to the following environment to set the chapter:
   ${settingsList}
 
   Provide the output in JSON format, following this schema: { "number": number, "title": string, "summary": string, "characters": string[], "settings": string[] }`;
 }
 
-export function getSceneProsePrompt(scene: Scene, chapter: Chapter, previousScenes: Scene[]): string {
+export function getSceneProsePrompt(scene: Scene, chapter: Chapter, previousScenes: Scene[], language: string): string {
   const previousScenesSummary = previousScenes.map(s => `Scene ${s.number}: ${s.title}\n${s.summary}`).join('\n\n');
   return `
-  
-    Write the full prose for the following scene, between 500 and 900 words.
+    Write the full prose for the following scene, between 500 and 1000 words.
 
     Chapter ${chapter.number}: ${chapter.title}
     Chapter Summary: ${chapter.summary}
+    Language: ${language || 'English'}
 
     ${previousScenes.length > 0 ? `Previous scenes in this chapter:\n${previousScenesSummary}\n` : ''}
     Scene ${scene.number}: ${scene.title}

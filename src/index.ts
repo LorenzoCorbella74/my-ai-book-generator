@@ -5,16 +5,29 @@ import { StoryIdea } from './models';
 async function main() {
   const answers = await inquirer.prompt([
     {
-      type: 'input',
-      name: 'genre',
-      message: 'Enter the genre of the story:',
-      default: 'Fantasy', // 'Fantasy','Science Fiction','Mystery','Historical','Horror','Romance','Adventure','Cyberpunk','Steampunk','Magical Realism','Thriller','Comedy',
+      type: 'list',
+      name: 'language',
+      message: 'Choose the language of the book:',
+      choices: ['English', 'Italian'],
+      default: 'English',
     },
     {
-      type: 'input',
+      type: 'checkbox',
+      name: 'genre',
+      message: 'Select the genre(s) of the story (choose 1-3):',
+      choices: [
+        'Fantasy','Science Fiction','Mystery','Historical','Horror','Romance','Adventure','Cyberpunk','Steampunk','Magical Realism','Thriller','Comedy'
+      ],
+      validate: (input: string[]) => input.length >= 1 && input.length <= 3 ? true : 'Select between 1 and 3 genres.'
+    },
+    {
+      type: 'checkbox',
       name: 'tone',
-      message: 'Enter the tone of the story:',
-      default: 'Epic', //  'Epic','Dark','Lighthearted','Suspenseful','Whimsical','Melancholic','Satirical','Uplifting',
+      message: 'Select the tone(s) of the story (choose 1-3):',
+      choices: [
+        'Epic','Dark','Lighthearted','Suspenseful','Whimsical','Melancholic','Satirical','Uplifting'
+      ],
+      validate: (input: string[]) => input.length >= 1 && input.length <= 3 ? true : 'Select between 1 and 3 tones.'
     },
     {
       type: 'list',
@@ -23,10 +36,22 @@ async function main() {
       choices: ['PG', '16', '18'],
     },
     {
-      type: 'input',
+      type: 'checkbox',
       name: 'style',
-      message: 'Enter the writing style of the story:',
-      default: 'Clear and concise', // 'Clear and concise','Descriptive and poetic','Fast-paced and action-packed','Dialogue-driven','First-person narrative','Stream of consciousness','Minimalist','Classic literature',
+      message: 'Select the writing style(s) of the story (choose 1-3):',
+      choices: [
+        'Clear and concise','Descriptive and poetic','Fast-paced and action-packed','Dialogue-driven','First-person narrative','Stream of consciousness','Minimalist','Classic literature'
+      ],
+      validate: (input: string[]) => input.length >= 1 && input.length <= 3 ? true : 'Select between 1 and 3 styles.'
+    },
+    {
+      type: 'checkbox',
+      name: 'targetAudience',
+      message: 'Select the target audience(s) (choose 1-3):',
+      choices: [
+        'Children', 'Middle Grade', 'Young Adult', 'Adult', 'Seniors', 'LGBTQ+', 'Families', 'Educators', 'General', 'Fans of a specific genre', 'Reluctant readers', 'Advanced readers'
+      ],
+      validate: (input: string[]) => input.length >= 1 && input.length <= 3 ? true : 'Select between 1 and 3 audiences.'
     },
     {
       type: 'number',
@@ -63,7 +88,9 @@ async function main() {
 
   await runPipeline({ ...context, idea: selectedIdea });
 
-  console.log('Story generated successfully in story.md!');
+  console.log('Story generated successfully. Look at the output folder!');
 }
+
+console.log("My AI Book Generator 📚\n")
 
 main();
