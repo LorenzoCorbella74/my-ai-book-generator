@@ -8,7 +8,7 @@ async function main() {
       type: 'list',
       name: 'language',
       message: 'Choose the language of the book:',
-      choices: ['English', 'Italian'],
+      choices: ['English', 'Italian', 'Spanish', 'French'],
       default: 'English',
     },
     {
@@ -63,7 +63,7 @@ async function main() {
       type: 'list',
       name: 'narrativeStructure',
       message: 'Select the narrative structure:',
-      choices: ['Three-Act Structure', 'The Hero\'s Journey', 'Fichtean Curve', 'Save the Cat!', 'Seven-Point Story Structure', 'In Medias Res'],
+      choices: ['Three-Act Structure', 'The Hero\'s Journey', 'Fichtean Curve', 'Save the Cat!', 'Seven-Point Story Structure', 'In Medias Res', 'Freytag\'s Pyramid', 'The Snowflake Method', 'Kishōtenketsu', 'Non-linear Narrative'],
       default: 'Three-Act Structure',
     }
   ]);

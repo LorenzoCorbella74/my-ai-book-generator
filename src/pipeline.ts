@@ -23,6 +23,7 @@ import {
   RawScene,
   Scene,
   Chapter,
+  Context,
 } from './models';
 import * as fs from 'fs/promises';
 
@@ -32,28 +33,6 @@ async function writeOutputFile(context: Context, filename: string, data: string)
   const outputDir = `output/${title.replace(/[^a-zA-Z0-9-_ ]/g, '').replace(/ /g, '_')}`;
   await fs.mkdir(outputDir, { recursive: true });
   await fs.writeFile(`${outputDir}/${filename}`, data);
-}
-
-interface Stat {
-  step: string;
-  time: number;
-}
-
-interface Context {
-  genre: string[] | string;
-  tone: string[] | string;
-  rating: string;
-  style: string[] | string;
-  targetAudience: string[] | string;
-  language: string;
-  maxChapters: number;
-  narrativeStructure: string;
-  idea?: StoryIdea;
-  outline?: StoryOutline;
-  characters?: Character[];
-  settings?: Setting[];
-  scenes?: Scene[];
-  stats: Stat[];
 }
 
 export async function generateIdeas(context: Context): Promise<StoryIdea[]> {

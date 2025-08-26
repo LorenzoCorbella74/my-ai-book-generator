@@ -83,3 +83,25 @@ export type Character = z.infer<typeof CharacterSchema>;
 export type Setting = z.infer<typeof SettingSchema>;
 export type RawScene = z.infer<typeof RawSceneSchema>;
 export type Scene = z.infer<typeof SceneSchema>;
+
+export interface Stat {
+  step: string;
+  time: number;
+}
+
+export interface Context {
+  genre: string[] | string;
+  tone: string[] | string;
+  rating: string;
+  style: string[] | string;
+  targetAudience: string[] | string;
+  language: string;
+  maxChapters: number;
+  narrativeStructure: string;
+  idea?: StoryIdea;
+  outline?: StoryOutline;
+  characters?: Character[];
+  settings?: Setting[];
+  scenes?: Scene[];
+  stats: Stat[];
+}
