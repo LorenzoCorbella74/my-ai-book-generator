@@ -72,9 +72,25 @@ export function getSettingsPrompt(idea: StoryIdea, language: string): string {
 }
 
 export function getChapterScenesPrompt(chapter: Chapter, characters: Character[], settings: Setting[] = [], language: string): string {
-  // Serialize character and setting details to give the AI full context.
-  const characterDetails = characters.map(c => JSON.stringify(c, null, 2)).join('\n');
-  const settingDetails = settings.map(s => JSON.stringify(s, null, 2)).join('\n');
+  const characterDetails = characters.map(c => `
+- Character: ${c.name}
+  - Role: ${c.role}
+  - Description: ${c.description}
+  - Internal Conflict: ${c.internalConflict}
+  - External Conflict: ${c.externalConflict}
+  - Virtues: ${c.virtues.join(', ')}
+  - Flaws: ${c.flaws.join(', ')}
+  - Arc: ${c.arc}
+  - The Lie They Believe: ${c.lieTheyBelieve}
+`).join('');
+
+  const settingDetails = settings.map(s => `
+- Setting: ${s.name}
+  - Description: ${s.description}
+  - Atmosphere: ${s.atmosphere}
+  - Plot Significance: ${s.plotSignificance}
+  - Sensory Details: ${s.sensoryDetails}
+`).join('');
 
   return `
   Generate 3-5 scenes for the following chapter. Ensure a dynamic mix of action, dialogue, and introspection scenes to vary the pacing.
@@ -113,8 +129,26 @@ export function getSceneProsePrompt(
   // Filter for characters and settings relevant to the current scene
   const sceneCharacters = allCharacters.filter(c => scene.characters.includes(c.name));
   const sceneSettings = allSettings.filter(s => scene.settings.includes(s.name));
-  const characterDetails = sceneCharacters.map(c => JSON.stringify(c, null, 2)).join('\n');
-  const settingDetails = sceneSettings.map(s => JSON.stringify(s, null, 2)).join('\n');
+  
+  const characterDetails = sceneCharacters.map(c => `
+- Character: ${c.name}
+  - Role: ${c.role}
+  - Description: ${c.description}
+  - Internal Conflict: ${c.internalConflict}
+  - External Conflict: ${c.externalConflict}
+  - Virtues: ${c.virtues.join(', ')}
+  - Flaws: ${c.flaws.join(', ')}
+  - Arc: ${c.arc}
+  - The Lie They Believe: ${c.lieTheyBelieve}
+`).join('');
+
+  const settingDetails = sceneSettings.map(s => `
+- Setting: ${s.name}
+  - Description: ${s.description}
+  - Atmosphere: ${s.atmosphere}
+  - Plot Significance: ${s.plotSignificance}
+  - Sensory Details: ${s.sensoryDetails}
+`).join('');
 
   let tensionInstruction = '';
   const chapterPosition = chapter.number / totalChapters;
