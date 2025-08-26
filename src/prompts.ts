@@ -67,7 +67,8 @@ export function getSettingsPrompt(idea: StoryIdea, language: string): string {
 
   For each setting, describe its atmosphere, its significance to the plot, and provide sensory details (sight, sound, smell, etc.).
 
-  Provide the output in JSON format, following this schema: { "name": string, "description": string, "atmosphere": string, "plotSignificance": string, "sensoryDetails": string }`;
+  Provide the output in JSON format, following this schema: 
+  { "name": string, "description": string, "atmosphere": string, "plotSignificance": string, "sensoryDetails": string }`;
 }
 
 export function getChapterScenesPrompt(chapter: Chapter, characters: Character[], settings: Setting[] = [], language: string): string {
@@ -77,7 +78,8 @@ export function getChapterScenesPrompt(chapter: Chapter, characters: Character[]
 
   return `
   Generate 3-5 scenes for the following chapter. Ensure a dynamic mix of action, dialogue, and introspection scenes to vary the pacing.
-  Base the scenes on the chapter summary and the detailed character profiles and setting descriptions provided. The scenes should be a direct consequence of the characters' motivations, flaws, and conflicts, and should be deeply influenced by the atmosphere and significance of the settings.
+  Base the scenes on the chapter summary and the detailed character profiles and setting descriptions provided. 
+  The scenes should be a direct consequence of the characters' motivations, flaws, and conflicts, and should be deeply influenced by the atmosphere and significance of the settings.
 
   Chapter ${chapter.number}: ${chapter.title}
   Summary: ${chapter.summary}
@@ -91,7 +93,8 @@ export function getChapterScenesPrompt(chapter: Chapter, characters: Character[]
 
   For each scene, define its primary purpose (e.g., reveal a clue, raise the stakes, develop a relationship), and list the characters and settings involved.
 
-  Provide the output in JSON format, following this schema: { "number": number, "title": string, "summary": string, "purpose": string, "characters": string[], "settings": string[] }`;
+  Provide the output in JSON format, following this schema: 
+  { "number": number, "title": string, "summary": string, "purpose": string, "characters": string[], "settings": string[] }`;
 }
 
 export function getSceneProsePrompt(

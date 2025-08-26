@@ -1,6 +1,7 @@
 import inquirer from 'inquirer';
 import { runPipeline, generateIdeas } from './pipeline';
 import { StoryIdea } from './models';
+import { readFileSync } from 'fs';
 
 async function main() {
   const answers = await inquirer.prompt([
@@ -98,6 +99,11 @@ async function main() {
   console.log('Story generated successfully. Look at the output folder!');
 }
 
-console.log("My AI Book Generator 📚\n")
+// Load package.json to display version and author
+const packageJson = JSON.parse(readFileSync('./package.json', 'utf-8'));
+const { author, version } = packageJson;
+
+console.log(`My AI Book Generator 📚 - Your Bestselling Co-Author`);
+console.log(`By ${author} | Version ${version}\n`);
 
 main();
