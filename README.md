@@ -31,7 +31,8 @@ Create a `.env` file in the project root and add the variables for the provider 
 
 - **Ollama**:
   - If none of the above cloud providers are configured, the app will fall back to using a local Ollama model.
-  - The default model is `llama3.1`, but this can be configured.
+  - `OLLAMA_MODEL`: The model to use (e.g., `llama3.1`, `mistral`). Defaults to `llama3.1` if not set.
+
 ## Usage
 Just type in your CMD line:
 ```bash
@@ -65,6 +66,7 @@ GOOGLE_GENERATIVE_AI_API_KEY=
 GOOGLE_MODEL=
 
 # Ollama is used if no cloud providers are set.
+OLLAMA_MODEL=llama3.1
 ```
 
 This project generates short books using an AI-driven pipeline. The process is modular and consists of the following steps:

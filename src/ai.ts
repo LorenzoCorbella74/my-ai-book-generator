@@ -11,7 +11,6 @@ import { mistral } from '@ai-sdk/mistral';
 export async function generate<T>(
   prompt: string,
   schema: z.ZodType<T>,
-  model: string = '', // This parameter is now only for the default ollama model
   system?: string
 ) {
   let providerModel;
@@ -28,13 +27,9 @@ export async function generate<T>(
     console.log(`Using Google Gemini model: ${process.env.GOOGLE_MODEL}`);
   } else {
     // Fallback to Ollama
-    const modelStr = model || 'ollama:llama3.2:latest';
-    const [provider, modelId, dimension] = modelStr.split(':');
-    if (provider !== 'ollama') {
-      throw new Error('Only Ollama provider is supported as fallback');
-    }
-    providerModel = ollama(modelId + (dimension ? `:${dimension}` : ''));
-    console.log(`Using Ollama model: ${modelId + (dimension ? `:${dimension}` : '')}`);
+    const ollamaModel = process.env.OLLAMA_MODEL || 'llama3.2:latest';
+    providerModel = ollama(ollamaModel);
+    console.log(`Using Ollama model: ${ollamaModel}`);
   }
 
   console.log('Prompt: ', prompt);
