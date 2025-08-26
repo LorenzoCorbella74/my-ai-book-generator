@@ -100,11 +100,12 @@ export async function runPipeline(context: Context) {
 
   console.log('🎬 Generating scenes and prose...');
   context.scenes = [];
-  if (context.outline && context.characters) {
+  if (context.outline && context.characters && context.settings) {
+    let previousChapters: Chapter[] = [];
     for (const chapter of context.outline.chapters) {
       console.log(`  📖 Generating scenes for chapter ${chapter.number}...`);
       const chapterScenesStart = Date.now();
-      const chapterScenesPrompt = getChapterScenesPrompt(chapter, context.characters, context.settings, context.language); // Corrected: settings should be passed as an array
+      const chapterScenesPrompt = getChapterScenesPrompt(chapter, context.characters, context.settings, context.language);
       const rawScenes = await generate(chapterScenesPrompt, RawSceneSchema.array(), undefined, systemPrompts.scenes);
       context.stats.push({ step: `chapter-${chapter.number}-scenes`, time: Date.now() - chapterScenesStart });
 
@@ -113,13 +114,23 @@ export async function runPipeline(context: Context) {
         console.log(`    ✍️ Generating prose for scene ${rawScene.number}...`);
         const sceneProseStart = Date.now();
         const scene: Scene = { ...rawScene, chapterNumber: chapter.number };
-        const sceneProsePrompt = getSceneProsePrompt(scene, chapter, previousScenes, context.language);
+        const sceneProsePrompt = getSceneProsePrompt(
+          scene,
+          chapter,
+          previousScenes,
+          previousChapters,
+          context.characters,
+          context.settings,
+          context.language,
+          context.outline.chapters.length
+        );
         const prose = await generate(sceneProsePrompt, z.object({ text: z.string() }), undefined, systemPrompts.prose);
         scene.text = prose.text;
         context.scenes.push(scene);
         previousScenes.push(scene);
         context.stats.push({ step: `chapter-${chapter.number}-scene-${rawScene.number}-prose`, time: Date.now() - sceneProseStart });
       }
+      previousChapters.push(chapter);
     }
   }
 

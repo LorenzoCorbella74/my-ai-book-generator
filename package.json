@@ -1,6 +1,6 @@
 {
   "name": "my-ai-book-generator",
-  "version": "1.0.0",
+  "version": "0.2.5",
   "description": "A CLI to generate short book using AI.",
   "main": "src/index.ts",
   "scripts": {

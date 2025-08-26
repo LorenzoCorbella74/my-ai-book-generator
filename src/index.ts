@@ -63,7 +63,7 @@ async function main() {
       type: 'list',
       name: 'narrativeStructure',
       message: 'Select the narrative structure:',
-      choices: ['Three-Act Structure', 'The Hero\'s Journey', 'Fichtean Curve'],
+      choices: ['Three-Act Structure', 'The Hero\'s Journey', 'Fichtean Curve', 'Save the Cat!', 'Seven-Point Story Structure', 'In Medias Res'],
       default: 'Three-Act Structure',
     }
   ]);

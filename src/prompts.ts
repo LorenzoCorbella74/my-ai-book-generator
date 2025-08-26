@@ -71,44 +71,92 @@ export function getSettingsPrompt(idea: StoryIdea, language: string): string {
 }
 
 export function getChapterScenesPrompt(chapter: Chapter, characters: Character[], settings: Setting[] = [], language: string): string {
-  const characterNames = characters.map(c => c.name).join(', ');
-  const settingsList = settings.length > 0 ? `\nAvailable settings: ${settings.map(s => s.name).join(', ')}` : '';
+  // Serialize character and setting details to give the AI full context.
+  const characterDetails = characters.map(c => JSON.stringify(c, null, 2)).join('\n');
+  const settingDetails = settings.map(s => JSON.stringify(s, null, 2)).join('\n');
+
   return `
   Generate 3-5 scenes for the following chapter. Ensure a dynamic mix of action, dialogue, and introspection scenes to vary the pacing.
+  Base the scenes on the chapter summary and the detailed character profiles and setting descriptions provided. The scenes should be a direct consequence of the characters' motivations, flaws, and conflicts, and should be deeply influenced by the atmosphere and significance of the settings.
 
   Chapter ${chapter.number}: ${chapter.title}
   Summary: ${chapter.summary}
   Language: ${language || 'English'}
 
-  Available characters: ${characterNames}
-  ${settingsList}
+  Full Character Profiles:
+  ${characterDetails}
 
-  For each scene, define its primary purpose (e.g., reveal a clue, raise the stakes, develop a relationship).
+  Full Setting Descriptions:
+  ${settingDetails}
+
+  For each scene, define its primary purpose (e.g., reveal a clue, raise the stakes, develop a relationship), and list the characters and settings involved.
 
   Provide the output in JSON format, following this schema: { "number": number, "title": string, "summary": string, "purpose": string, "characters": string[], "settings": string[] }`;
 }
 
-export function getSceneProsePrompt(scene: Scene, chapter: Chapter, previousScenes: Scene[], language:string): string {
+export function getSceneProsePrompt(
+  scene: Scene,
+  chapter: Chapter,
+  previousScenes: Scene[],
+  previousChapters: Chapter[],
+  allCharacters: Character[],
+  allSettings: Setting[],
+  language: string,
+  totalChapters: number
+): string {
   const previousScenesSummary = previousScenes.map(s => `Scene ${s.number}: ${s.title}\n${s.summary}`).join('\n\n');
+  const previousChaptersSummary = previousChapters.map(c => `Chapter ${c.number}: ${c.title}\n${c.summary}`).join('\n\n');
+
+  // Filter for characters and settings relevant to the current scene
+  const sceneCharacters = allCharacters.filter(c => scene.characters.includes(c.name));
+  const sceneSettings = allSettings.filter(s => scene.settings.includes(s.name));
+  const characterDetails = sceneCharacters.map(c => JSON.stringify(c, null, 2)).join('\n');
+  const settingDetails = sceneSettings.map(s => JSON.stringify(s, null, 2)).join('\n');
+
+  let tensionInstruction = '';
+  const chapterPosition = chapter.number / totalChapters;
+  if (chapterPosition < 0.33) {
+    tensionInstruction = 'This is an early chapter. Focus on setup, character introduction, and building mystery. The emotional tension should be low to medium.';
+  } else if (chapterPosition < 0.66) {
+    tensionInstruction = 'This is a middle chapter. Raise the stakes, introduce complications, and develop subplots. The emotional tension should be medium to high.';
+  } else {
+    tensionInstruction = 'This is a late chapter. Build towards the climax, increase the tension dramatically, and push characters towards their final confrontations. The emotional tension should be high to very high.';
+  }
+
   return `
-    Write the full prose for the following scene, between 500 and 1000 words.
+    Write the full prose for the following scene, between 500 and 1000 words, ensuring it is consistent with all the context provided (previous chapters, scenes, character profiles, etc.).
 
     Language: ${language || 'English'}
-    Chapter ${chapter.number}: ${chapter.title}
-    Chapter Summary: ${chapter.summary}
 
+    Overall Story Context:
+    ${previousChapters.length > 0 ? `Summaries of previous chapters:\n${previousChaptersSummary}\n` : ''}
+
+    Current Chapter Context:
+    Chapter ${chapter.number} of ${totalChapters}: ${chapter.title}
+    Chapter Summary: ${chapter.summary}
     ${previousScenes.length > 0 ? `Previous scenes in this chapter:\n${previousScenesSummary}\n` : ''}
+
+    Current Scene:
     Scene ${scene.number}: ${scene.title}
     Scene Summary: ${scene.summary}
+    Scene Purpose: ${scene.purpose}
+
+    Narrative Pacing and Tension:
+    ${tensionInstruction}
+
+    Character & Setting Details for this Scene:
+    Reference these full profiles to inform character actions, dialogue, and internal thoughts. Their behavior must be consistent with their defined personalities, motivations, and flaws.
+    Characters:
+    ${characterDetails}
+
+    Settings:
+    ${settingDetails}
 
     Style Guidelines:
     - Write dialogue that is natural, reveals character, and advances the plot. Use subtext; what is *not* said should be as important as what is said.
     - Incorporate literary devices (metaphors, similes, etc.) to create powerful and original imagery.
     - Actively avoid common tropes and clichés. Strive for originality in every sentence.
     - Maintain a consistent style, tone and rating, using deep point of view and a pace that allows for in-depth character and world development.
-
-    Characters in this scene: ${scene.characters.join(', ')}
-    Settings in this scene: ${scene.settings.join(', ')}
 
     Provide the output in JSON format, following this schema: { "text": string }`;
 }
