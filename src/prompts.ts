@@ -6,7 +6,7 @@ export function getIdeasPrompt(
   rating: string,
   style: string[] | string,
   targetAudience: string[] | string,
-    language: string
+  language: string
 ): string {
   const genreStr = Array.isArray(genre) ? genre.join(', ') : genre;
   const toneStr = Array.isArray(tone) ? tone.join(', ') : tone;
@@ -14,88 +14,98 @@ export function getIdeasPrompt(
   const audienceStr = Array.isArray(targetAudience) ? targetAudience.join(', ') : targetAudience;
   return `
   Generate 5 unique story ideas for a short story.
-  
+
   Language: ${language}
-  Each story should have a title, a three-sentence premise, a list of 3-5 main characters, and a brief name and description of 3-5 main settings.
+  For each idea, provide a compelling logline, a central conflict, and a core moral dilemma.
+  For each character, provide their primary motivation and a secret they are hiding.
+  
   Genre(s): ${genreStr}
   Tone(s): ${toneStr}
   Rating: ${rating}
   Style(s): ${styleStr}
   Target Audience(s): ${audienceStr}
 
-  Provide the output in JSON format, following this schema: { "id": number, "title": string, "premise": string, "mainCharacters": string[], "setting": string[] }`;
+  Provide the output in JSON format, following this schema: { "id": number, "title": string, "logline": string, "premise": string, "centralConflict": string, "moralDilemma": string, "mainCharacters": { "name": string, "motivation": string, "secret": string }[], "settings": { "name": string, "description": string }[] }`;
 }
 
-export function getOutlinePrompt(idea: StoryIdea, maxChapters: number, language: string): string {
+export function getOutlinePrompt(idea: StoryIdea, maxChapters: number, language: string, narrativeStructure: string = 'Three-Act Structure'): string {
   return `
-  Generate a story outline with a maximum of ${maxChapters} chapters for the following story idea:
+  Generate a story outline with a maximum of ${maxChapters} chapters for the following story idea, following the ${narrativeStructure}.
 
   Title: ${idea.title}
   Premise: ${idea.premise}
-  Main Characters: ${idea.mainCharacters.join(', ')}
-  Setting: ${idea.settings.join(', ')}
+  Main Characters: ${idea.mainCharacters.map(c => c.name).join(', ')}
+  Setting: ${idea.settings.map(s => s.name).join(', ')}
   Language: ${language || 'English'}
 
-  Provide the output in JSON format, following this schema: { "title": string, "chapters": { "number": number, "title": string, "summary": string }[] }`;
+  For each chapter, define its key turning point, the main character's emotional shift, and which subplots are advanced.
+
+  Provide the output in JSON format, following this schema: { "title": string, "chapters": { "number": number, "title": string, "summary": string, "turningPoint": string, "emotionalShift": string, "subplotsAdvanced": string[] }[] }`;
 }
 
 export function getCharactersPrompt(idea: StoryIdea, language: string): string {
   return `
-  Generate character profiles for the main characters in the following story idea:
+  Generate deep character profiles for the main characters in the following story idea.
 
   Title: ${idea.title}
   Premise: ${idea.premise}
-  Main Characters: ${idea.mainCharacters.join(', ')}
+  Main Characters: ${idea.mainCharacters.map(c => c.name).join(', ')}
   Language: ${language || 'English'}
 
-  Provide the output in JSON format, following this schema: { "name": string, "role": string, "description": string, "relations": { "type": string, "with": string }[] }`;
+  For each character, provide their internal and external conflicts, at least two virtues and two flaws, their potential character arc, and the core "lie" they believe about themselves or the world.
+
+  Provide the output in JSON format, following this schema: { "name": string, "role": string, "description": string, "internalConflict": string, "externalConflict": string, "virtues": string[], "flaws": string[], "arc": string, "lieTheyBelieve": string, "relations": { "type": string, "with": string }[] }`;
 }
 
 export function getSettingsPrompt(idea: StoryIdea, language: string): string {
   return `
-  Generate descriptions for the main settings in the following story idea:
+  Generate evocative descriptions for the main settings in the following story idea.
 
   Title: ${idea.title}
-  Setting: ${idea.settings}
+  Setting: ${idea.settings.map(s => s.name).join(', ')}
   Language: ${language || 'English'}
 
-  Provide the output in JSON format, following this schema: { "name": string, "description": string }`;
+  For each setting, describe its atmosphere, its significance to the plot, and provide sensory details (sight, sound, smell, etc.).
+
+  Provide the output in JSON format, following this schema: { "name": string, "description": string, "atmosphere": string, "plotSignificance": string, "sensoryDetails": string }`;
 }
 
-export function getChapterScenesPrompt(chapter: Chapter, characters: Character[], settings: string[] = [], language: string): string {
+export function getChapterScenesPrompt(chapter: Chapter, characters: Character[], settings: Setting[] = [], language: string): string {
   const characterNames = characters.map(c => c.name).join(', ');
-  const settingsList = settings && settings.length > 0 ? `\nAvailable settings: ${settings.join(', ')}` : '';
+  const settingsList = settings.length > 0 ? `\nAvailable settings: ${settings.map(s => s.name).join(', ')}` : '';
   return `
-  Generate 3-5 scenes for the following chapter:
+  Generate 3-5 scenes for the following chapter. Ensure a dynamic mix of action, dialogue, and introspection scenes to vary the pacing.
 
   Chapter ${chapter.number}: ${chapter.title}
   Summary: ${chapter.summary}
   Language: ${language || 'English'}
 
-  Refer to the following characters: 
-  ${characterNames}
-  Refer to the following environment to set the chapter:
+  Available characters: ${characterNames}
   ${settingsList}
 
-  Provide the output in JSON format, following this schema: { "number": number, "title": string, "summary": string, "characters": string[], "settings": string[] }`;
+  For each scene, define its primary purpose (e.g., reveal a clue, raise the stakes, develop a relationship).
+
+  Provide the output in JSON format, following this schema: { "number": number, "title": string, "summary": string, "purpose": string, "characters": string[], "settings": string[] }`;
 }
 
-export function getSceneProsePrompt(scene: Scene, chapter: Chapter, previousScenes: Scene[], language: string): string {
+export function getSceneProsePrompt(scene: Scene, chapter: Chapter, previousScenes: Scene[], language:string): string {
   const previousScenesSummary = previousScenes.map(s => `Scene ${s.number}: ${s.title}\n${s.summary}`).join('\n\n');
   return `
     Write the full prose for the following scene, between 500 and 1000 words.
 
+    Language: ${language || 'English'}
     Chapter ${chapter.number}: ${chapter.title}
     Chapter Summary: ${chapter.summary}
-    Language: ${language || 'English'}
 
     ${previousScenes.length > 0 ? `Previous scenes in this chapter:\n${previousScenesSummary}\n` : ''}
     Scene ${scene.number}: ${scene.title}
     Scene Summary: ${scene.summary}
 
-    Style Guidelines: Maintain a consistent style, tone and rating.
-
-    Make sure to have plenty of realistic dialogue, and be sure to show don’t tell, and use deep point of view. Write in a very slow pace, building the story with in-depth character development and world building
+    Style Guidelines:
+    - Write dialogue that is natural, reveals character, and advances the plot. Use subtext; what is *not* said should be as important as what is said.
+    - Incorporate literary devices (metaphors, similes, etc.) to create powerful and original imagery.
+    - Actively avoid common tropes and clichés. Strive for originality in every sentence.
+    - Maintain a consistent style, tone and rating, using deep point of view and a pace that allows for in-depth character and world development.
 
     Characters in this scene: ${scene.characters.join(', ')}
     Settings in this scene: ${scene.settings.join(', ')}
@@ -104,11 +114,11 @@ export function getSceneProsePrompt(scene: Scene, chapter: Chapter, previousScen
 }
 
 export const systemPrompts = {
-  ideas: 'You are an expert creative assistant that generates story ideas, intriguing characters, and gripping emotional stakes',
-  outline: 'You are an expert story outliner that creates a chapter structure for a story.',
-  characters: 'You are an expert character designer that creates character profiles.',
-  settings: 'You are an expert world builder that creates setting descriptions.',
-  scenes: 'You are an expert scene generator that creates a list of scenes for a chapter.',
-  prose: 'You are an expert story writer that expands a scene summary into full prose.',
+  ideas: 'You are a brainstorming genius specializing in high-concept, unexpected twists. Your mission is to generate ideas that break genre conventions, featuring complex characters and moral dilemmas.',
+  outline: 'You are a master storyteller and structural editor. Your task is to forge a compelling narrative arc, ensuring each chapter serves a purpose, raises the stakes, and contributes to the overall theme.',
+  characters: 'You are a deep character psychologist. You craft multi-faceted individuals with rich inner lives, conflicting motivations, and the potential for profound transformation.',
+  settings: 'You are an evocative world-builder. You don\'t just describe places; you create immersive environments that breathe with atmosphere, influence the plot, and reflect the characters\' inner states.',
+  scenes: 'You are an expert scene choreographer. You design the building blocks of a chapter, ensuring a dynamic flow between action, dialogue, and introspection, with each scene having a clear purpose.',
+  prose: 'You are a bestselling novelist known for your evocative prose and deep psychological insight. Your style is immersive, prioritizing "show, don\'t tell," and every piece of dialogue crackles with subtext. You avoid clichés religiously and strive for originality in every sentence.',
 };
 

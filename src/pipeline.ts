@@ -47,6 +47,7 @@ interface Context {
   targetAudience: string[] | string;
   language: string;
   maxChapters: number;
+  narrativeStructure: string;
   idea?: StoryIdea;
   outline?: StoryOutline;
   characters?: Character[];
@@ -78,7 +79,7 @@ export async function runPipeline(context: Context) {
 
   console.log('📝 Generating outline...');
   const outlineStart = Date.now();
-  const outlinePrompt = getOutlinePrompt(context.idea, context.maxChapters, context.language);
+  const outlinePrompt = getOutlinePrompt(context.idea, context.maxChapters, context.language, context.narrativeStructure);
   context.outline = await generate(outlinePrompt, StoryOutlineSchema, undefined, systemPrompts.outline);
   console.log('OUTLINE: ', context.outline);
   context.stats.push({ step: 'outline', time: Date.now() - outlineStart });
@@ -103,7 +104,7 @@ export async function runPipeline(context: Context) {
     for (const chapter of context.outline.chapters) {
       console.log(`  📖 Generating scenes for chapter ${chapter.number}...`);
       const chapterScenesStart = Date.now();
-      const chapterScenesPrompt = getChapterScenesPrompt(chapter, context.characters, context.settings?.map(s => s.name), context.language);
+      const chapterScenesPrompt = getChapterScenesPrompt(chapter, context.characters, context.settings, context.language); // Corrected: settings should be passed as an array
       const rawScenes = await generate(chapterScenesPrompt, RawSceneSchema.array(), undefined, systemPrompts.scenes);
       context.stats.push({ step: `chapter-${chapter.number}-scenes`, time: Date.now() - chapterScenesStart });
 
@@ -133,25 +134,38 @@ async function exportStory(context: Context) {
     return;
   }
 
+  // Slugify function to create valid markdown anchor links from header text
+  const slugify = (text: string) =>
+    text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '') // remove non-word characters
+      .replace(/\s+/g, '-'); // replace spaces with hyphens
+
   let markdown = `# ${context.outline.title}\n\n`;
 
   markdown += '## Index\n\n';
   for (const chapter of context.outline.chapters) {
-    markdown += `* [Chapter ${chapter.number}: ${chapter.title}](#chapter-${chapter.number})\n`;
+    const chapterHeader = `Chapter ${chapter.number}: ${chapter.title}`;
+    markdown += `* [${chapterHeader}](#${slugify(chapterHeader)})\n`;
+
     const chapterScenes = context.scenes.filter((s) => s.chapterNumber === chapter.number);
     for (const scene of chapterScenes) {
-      markdown += `  * [Scene ${scene.number}: ${scene.title}](#scene-${chapter.number}-${scene.number})\n`;
+      const sceneLinkText = `Scene ${scene.number}: ${scene.title}`;
+      // Add chapter number to scene header for slug uniqueness
+      const sceneHeaderForSlug = `Scene ${chapter.number}-${scene.number}: ${scene.title}`;
+      markdown += `  * [${sceneLinkText}](#${slugify(sceneHeaderForSlug)})\n`;
     }
   }
   markdown += '\n';
 
   for (const chapter of context.outline.chapters) {
-    markdown += `<a name=\"chapter-${chapter.number}\"></a>\n`;
-    markdown += `## Chapter ${chapter.number}: ${chapter.title}\n\n`;
+    const chapterHeader = `Chapter ${chapter.number}: ${chapter.title}`;
+    markdown += `## ${chapterHeader}\n\n`;
     const chapterScenes = context.scenes.filter((s) => s.chapterNumber === chapter.number);
     for (const scene of chapterScenes) {
-      markdown += `<a name=\"scene-${chapter.number}-${scene.number}\"></a>\n`;
-      markdown += `### Scene ${scene.number}: ${scene.title}\n\n`;
+      // Add chapter number to scene header for uniqueness
+      const sceneHeader = `Scene ${chapter.number}-${scene.number}: ${scene.title}`;
+      markdown += `### ${sceneHeader}\n\n`;
       markdown += `${scene.text}\n\n`;
     }
   }
@@ -166,7 +180,8 @@ async function exportStats(context: Context) {
   markdown += '|------|-----------|\n';
   let totalMs = 0;
   for (const stat of context.stats) {
-    markdown += `| ${stat.step} | ${stat.time} |\n`;
+    const minutes = (stat.time / 60000).toFixed(2);
+    markdown += `| ${stat.step} | ${minutes} |\n`;
     totalMs += stat.time;
   }
   const totalMinutes = (totalMs / 60000).toFixed(2);

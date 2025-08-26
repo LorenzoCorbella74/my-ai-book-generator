@@ -59,6 +59,13 @@ async function main() {
       message: 'Enter the maximum number of chapters:',
       default: 5,
     },
+    {
+      type: 'list',
+      name: 'narrativeStructure',
+      message: 'Select the narrative structure:',
+      choices: ['Three-Act Structure', 'The Hero\'s Journey', 'Fichtean Curve'],
+      default: 'Three-Act Structure',
+    }
   ]);
 
   const context = { ...answers, stats: [] };
@@ -66,7 +73,7 @@ async function main() {
   const ideas = await generateIdeas(context);
 
   const ideaChoices = ideas.map((idea: StoryIdea) => ({
-    name: `${idea.title}: ${idea.premise}`,
+    name: `${idea.title}: ${idea.logline}`,
     value: idea.id,
   }));
 
