@@ -118,6 +118,15 @@ export const BlurbSchema = z.object({
 
 export type Blurb = z.infer<typeof BlurbSchema>;
 
+export const WorldBibleSchema = z.object({
+  timeline: z.array(z.object({ event: z.string(), description: z.string() })),
+  character_dossiers: z.array(z.object({ name: z.string(), dossier: z.string() })),
+  location_guides: z.array(z.object({ name: z.string(), guide: z.string() })),
+  world_rules: z.string().optional(),
+});
+
+export type WorldBible = z.infer<typeof WorldBibleSchema>;
+
 export interface Stat {
   step: string;
   time: number;

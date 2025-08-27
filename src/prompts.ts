@@ -316,8 +316,49 @@ export function getBlurbPrompt(context: Context): string {
     Provide the output in JSON format, following this schema: { "tagline": string, "blurb": string }`;
 }
 
-export const systemPrompts = {
+export function getWorldBiblePrompt(context: Context): string {
+    const characterProfiles = context.characters?.map(c => `
+- Character: ${c.name}
+  - Role: ${c.role}
+  - Description: ${c.description}
+  - Internal Conflict: ${c.internalConflict}
+  - External Conflict: ${c.externalConflict}
+  - Virtues: ${c.virtues.join(', ')}
+  - Flaws: ${c.flaws.join(', ')}
+  - Arc: ${c.arc}
+  - The Lie They Believe: ${c.lieTheyBelieve}
+`).join('');
 
+    const settingDetails = context.settings?.map(s => `
+- Setting: ${s.name}
+  - Description: ${s.description}
+  - Atmosphere: ${s.atmosphere}
+  - Plot Significance: ${s.plotSignificance}
+  - Sensory Details: ${s.sensoryDetails}
+`).join('');
+
+    const plotSummary = context.outline?.chapters.map(c => `Chapter ${c.number}: ${c.title} - ${c.summary}`).join('\n');
+
+    return `
+    Based on the complete story context, create a comprehensive "World-Building Bible" for the author. This document should be a structured and detailed reference.
+
+    **Full Story Context:**
+    - **Title:** ${context.idea?.title}
+    - **Premise:** ${context.idea?.premise}
+    - **Character Profiles:**\n${characterProfiles}
+    - **Setting Descriptions:**\n${settingDetails}
+    - **Full Plot Outline:**\n${plotSummary}
+
+    **Your Tasks:**
+    1.  **Timeline of Major Events:** Create a chronological list of key events in the story's backstory and plot.
+    2.  **Character Dossiers:** Write expanded details on the main characters' backstories, relationships, and motivations that might not be immediately obvious in the text.
+    3.  **Location Guides:** Provide deeper dives into the history, culture, and significance of each major setting.
+    4.  **World Rules (if applicable):** If there are any magic systems, unique technologies, or physical laws, explain their rules and limitations clearly.
+
+    Provide the output in JSON format, following this schema: { "timeline": [{ "event": string, "description": string }], "character_dossiers": [{ "name": string, "dossier": string }], "location_guides": [{ "name": string, "guide": string }], "world_rules": string }`;
+}
+
+export const systemPrompts = {
   ideas: `
   You are a brainstorming genius specializing in high-concept, unexpected twists. 
   Your mission is to generate ideas that break genre conventions, featuring complex characters and moral dilemmas.`,
@@ -346,6 +387,11 @@ export const systemPrompts = {
   Your task is to create detailed, evocative, and powerful text-to-image prompts that capture the essence of a story for its cover art and key scenes.`,
   marketingCopywriter: `
   You are an expert marketing copywriter for a major publishing house. 
-  Your specialty is writing compelling,hook-driven back cover blurbs and taglines that make people want to buy the book.`
+  Your specialty is writing compelling,hook-driven back cover blurbs and taglines that make people want to buy the book.`,
+  loreKeeper: `
+  You are a meticulous lore-keeper and world-builder. 
+  Your task is to create a comprehensive World-Building Bible for an author, based on the story they have written. 
+  You synthesize all the provided information into a structured and detailed reference document.`
+
 };
 

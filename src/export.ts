@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import { Document, Packer, Paragraph, HeadingLevel, TextRun, Styles, AlignmentType } from 'docx';
-import { Context, ArtPrompts, Blurb } from './models';
+import { Context, ArtPrompts, Blurb, WorldBible } from './models';
 
 // Helper to write files in output/<book title> folder
 async function writeOutputFile(context: Context, filename: string, data: string | Buffer) {
@@ -65,6 +65,7 @@ export async function exportStoryDocx(context: Context) {
     new Paragraph({
       text: context.outline.title,
       heading: HeadingLevel.TITLE,
+      spacing: { after: 600 },
     }),
   ];
 
@@ -73,6 +74,7 @@ export async function exportStoryDocx(context: Context) {
       new Paragraph({
         text: `Chapter ${chapter.number}: ${chapter.title}`,
         heading: HeadingLevel.HEADING_1,
+        spacing: { after: 400 },
       })
     );
 
@@ -164,4 +166,36 @@ export async function exportBlurbMd(context: Context, blurb: Blurb) {
   markdown += `${blurb.blurb}\n`;
 
   await writeOutputFile(context, 'back_cover_blurb.md', markdown);
+}
+
+export async function exportWorldBibleMd(context: Context, worldBible: WorldBible) {
+  let markdown = '# World Bible\n\n';
+
+  if (worldBible.timeline && worldBible.timeline.length > 0) {
+    markdown += '## Timeline of Major Events\n\n';
+    for (const event of worldBible.timeline) {
+      markdown += `### ${event.event}\n\n${event.description}\n\n`;
+    }
+  }
+
+  if (worldBible.character_dossiers && worldBible.character_dossiers.length > 0) {
+    markdown += '## Character Dossiers\n\n';
+    for (const dossier of worldBible.character_dossiers) {
+      markdown += `### ${dossier.name}\n\n${dossier.dossier}\n\n`;
+    }
+  }
+
+  if (worldBible.location_guides && worldBible.location_guides.length > 0) {
+    markdown += '## Location Guides\n\n';
+    for (const guide of worldBible.location_guides) {
+      markdown += `### ${guide.name}\n\n${guide.guide}\n\n`;
+    }
+  }
+
+  if (worldBible.world_rules) {
+    markdown += '## World Rules\n\n';
+    markdown += `${worldBible.world_rules}\n`;
+  }
+
+  await writeOutputFile(context, 'world_bible.md', markdown);
 }    

@@ -10,6 +10,7 @@ import {
   getOutlinePrompt, 
   getSceneProsePrompt, 
   getSettingsPrompt, 
+  getWorldBiblePrompt, 
   systemPrompts 
 } from './prompts';
 
@@ -26,8 +27,9 @@ import {
   Context,
   BlurbSchema,
   ArtPromptsSchema,
+  WorldBibleSchema,
 } from './models';
-import { exportContext, exportStatsMd, exportStoryDocx, exportStoryMd, exportArtPromptsMd, exportBlurbMd } from './export';
+import { exportContext, exportStatsMd, exportStoryDocx, exportStoryMd, exportArtPromptsMd, exportBlurbMd, exportWorldBibleMd } from './export';
 
 export async function generateIdeas(context: Context): Promise<StoryIdea[]> {
   const ideasStart = Date.now();
@@ -217,5 +219,21 @@ export async function runPipeline(context: Context) {
   await exportStatsMd(context);
   await exportArtPromptsMd(context, artPrompts);
   await exportBlurbMd(context, blurb);
+
+  console.log('📖 Generating World Bible...');
+  const worldBibleStart = Date.now();
+  const worldBiblePrompt = getWorldBiblePrompt(context);
+  const { object: worldBible, usage: worldBibleUsage } = await generate(worldBiblePrompt, WorldBibleSchema, systemPrompts.loreKeeper);
+  console.log(`  💡 Token usage for World Bible: ${worldBibleUsage.totalTokens} tokens`);
+  context.stats.push({
+    step: 'world_bible',
+    time: Date.now() - worldBibleStart,
+    inputTokens: worldBibleUsage.inputTokens ?? 0,
+    outputTokens: worldBibleUsage.outputTokens ?? 0,
+    totalTokens: worldBibleUsage.totalTokens ?? 0,
+    ...(worldBibleUsage.reasoningTokens !== undefined ? { reasoningTokens: worldBibleUsage.reasoningTokens } : {}),
+  });
+
+  await exportWorldBibleMd(context, worldBible);
 }
 

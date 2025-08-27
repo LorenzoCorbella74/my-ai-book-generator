@@ -80,6 +80,9 @@ The generation process is modular and consists of the following enhanced steps:
     - It gets a summary of all previous chapters and scenes to maintain **coherence**.
     - It adjusts the **emotional tension** based on the chapter's position in the story, building towards a climax.
 6.  **AI Editing**: After each chapter is written, a specialized "AI Editor" reviews the entire chapter. It checks for consistency against the user's original choices, fixes plot holes or character inconsistencies, removes repetition, and improves the overall prose, acting as a final quality control step.
+7.  **Art Prompt Generation**: A specialized "AI Art Director" creates detailed text-to-image prompts for generating a book cover and several key scene illustrations.
+8.  **Marketing Copy Generation**: An "AI Marketing Copywriter" generates a compelling back-cover blurb and a catchy tagline for the book.
+9.  **World-Building Bible Generation**: A meticulous "AI Lore Keeper" synthesizes all the generated information into a comprehensive reference document, including a timeline, character dossiers, location guides, and world rules.
 
 
 ## Output
@@ -90,5 +93,6 @@ All generated files are saved in an `/output/<book title>` folder for each book 
 - `stats.md`: Detailed statistics about the generation process, including token usage.
 - `art_prompts.md`: Ready-to-use prompts for generating cover art and scene illustrations.
 - `back_cover_blurb.md`: A compelling blurb and tagline for the book.
+- `world_bible.md`: A comprehensive reference document with a timeline, character dossiers, location guides, and world rules.
 
 The pipeline is designed for flexibility and can be adapted for different **genres**, **tones**, **audiences**, and **book lengths**. All data is structured using JSON schemas for easy validation and further processing.
