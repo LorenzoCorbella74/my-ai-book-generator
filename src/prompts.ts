@@ -1,4 +1,4 @@
-import { Chapter, StoryIdea, StoryOutline, Character, Setting, Scene } from './models';
+import { Chapter, StoryIdea, StoryOutline, Character, Setting, Scene, Context } from './models';
 
 export function getIdeasPrompt(
   genre: string[] | string,
@@ -198,12 +198,95 @@ export function getSceneProsePrompt(
     Provide the output in JSON format, following this schema: { "text": string }`;
 }
 
+export function getEditChapterPrompt(
+    chapter: Chapter,
+    scenes: Scene[],
+    allCharacters: Character[],
+  allSettings: Setting[],
+    previousChapters: Chapter[],
+    context: Context
+  ): string {
+    const genreStr = Array.isArray(context.genre) ? context.genre.join(', ') : context.genre;
+    const toneStr = Array.isArray(context.tone) ? context.tone.join(', ') : context.tone;
+    const styleStr = Array.isArray(context.style) ? context.style.join(', ') : context.style;
+  
+    const fullChapterText = scenes.map(s => `### Scene ${s.number}: ${s.title}\n${s.summary}\n\n${s.text}`).join('\n\n---\n\n');
+    const previousChaptersSummary = previousChapters.map(c => `Chapter ${c.number}: ${c.title}\n${c.summary}`).join('\n\n');
+    const characterDetails = allCharacters.map(c => `
+    - Character: ${c.name}
+      - Role: ${c.role}
+      - Description: ${c.description}
+      - Internal Conflict: ${c.internalConflict}
+      - External Conflict: ${c.externalConflict}
+      - Virtues: ${c.virtues.join(', ')}
+      - Flaws: ${c.flaws.join(', ')}
+      - Arc: ${c.arc}
+      - The Lie They Believe: ${c.lieTheyBelieve}
+    `).join('');
+        const settingDetails = allSettings.map(s => `
+    - Setting: ${s.name}
+      - Description: ${s.description}
+      - Atmosphere: ${s.atmosphere}
+      - Plot Significance: ${s.plotSignificance}
+      - Sensory Details: ${s.sensoryDetails}
+    `).join('');
+
+    return `
+    You are an editor. Your task is to review and refine the following chapter based on the provided context and guidelines. 
+    Apply your edits directly to the text and provide a new version of the chapter.
+
+    **Author's Guidelines:**
+    - **Genre(s):** ${genreStr}
+    - **Tone(s):** ${toneStr}
+    - **Style(s):** ${styleStr}
+    - **Rating:** ${context.rating}
+    - **Target Audience:** ${Array.isArray(context.targetAudience) ? context.targetAudience.join(', ') : context.targetAudience}
+
+    **Story Context:**
+    - **Previous Chapters Summary:**
+    ${previousChaptersSummary || 'N/A'}
+    - **Character Profiles:**
+    ${characterDetails}
+    - **Setting Descriptions:**
+    ${settingDetails}
+
+    **Chapter to Edit:**
+    ## Chapter ${chapter.number}: ${chapter.title}
+    ${fullChapterText}
+
+    **Your Tasks:**
+    1.  **Ensure Consistency:** The chapter must align with the author's guidelines (genre, tone, style, rating).
+    2.  **Fix Inconsistencies:** Correct any contradictions with character profiles, setting details, or previous plot points.
+    3.  **Eliminate Repetition:** Rephrase repetitive words, sentence structures, and descriptions.
+    4.  **Improve Prose:** Enhance weak passages, strengthen descriptions, tighten dialogue, and improve pacing. Show, don't tell.
+    5.  **Return the Full, Edited Chapter:** Provide the complete, edited text for each scene in the chapter.
+
+    Provide the output in JSON format, following this schema: { "scenes": [{ "number": number, "title": string, "summary": string, "text": string }] }`;
+  }
+
 export const systemPrompts = {
-  ideas: 'You are a brainstorming genius specializing in high-concept, unexpected twists. Your mission is to generate ideas that break genre conventions, featuring complex characters and moral dilemmas.',
-  outline: 'You are a master storyteller and structural editor. Your task is to forge a compelling narrative arc, ensuring each chapter serves a purpose, raises the stakes, and contributes to the overall theme.',
-  characters: 'You are a deep character psychologist. You craft multi-faceted individuals with rich inner lives, conflicting motivations, and the potential for profound transformation.',
-  settings: 'You are an evocative world-builder. You don\'t just describe places; you create immersive environments that breathe with atmosphere, influence the plot, and reflect the characters\' inner states.',
-  scenes: 'You are an expert scene choreographer. You design the building blocks of a chapter, ensuring a dynamic flow between action, dialogue, and introspection, with each scene having a clear purpose.',
-  prose: 'You are a bestselling novelist known for your evocative prose and deep psychological insight. Your style is immersive, prioritizing "show, don\'t tell," and every piece of dialogue crackles with subtext. You avoid clichés religiously and strive for originality in every sentence.',
+  ideas: `
+  You are a brainstorming genius specializing in high-concept, unexpected twists. 
+  Your mission is to generate ideas that break genre conventions, featuring complex characters and moral dilemmas.`,
+  outline: `
+  You are a master storyteller and structural editor. 
+  Your task is to forge a compelling narrative arc, ensuring each chapter serves a purpose, raises the stakes, and contributes to the overall theme.`,
+  characters: `
+  You are a deep character psychologist. 
+  You craft multi-faceted individuals with rich inner lives, conflicting motivations, and the potential for profound transformation.`,
+  settings: `
+  You are an evocative world-builder. 
+  You don\'t just describe places; you create immersive environments that breathe with atmosphere, influence the plot, and reflect the characters\' inner states.`,
+  scenes: `
+  You are an expert scene choreographer. 
+  You design the building blocks of a chapter, ensuring a dynamic flow between action, dialogue, and introspection, with each scene having a clear purpose.`,
+  prose: `
+  You are a bestselling novelist known for your evocative prose and deep psychological insight. 
+  Your style is immersive, prioritizing "show, don't tell," and every piece of dialogue crackles with subtext. 
+  You avoid clichés religiously and strive for originality in every sentence.`,
+  editor: `
+  You are a meticulous and brilliant developmental editor for a major publishing house. 
+  Your job is to refine and perfect a manuscript, ensuring it is compelling, coherent, and aligns with the author's original vision. 
+  You make direct edits to the text to improve it.`
 };
 

@@ -84,6 +84,20 @@ export type Setting = z.infer<typeof SettingSchema>;
 export type RawScene = z.infer<typeof RawSceneSchema>;
 export type Scene = z.infer<typeof SceneSchema>;
 
+export const EditedSceneSchema = z.object({
+  number: z.number(),
+  title: z.string(),
+  summary: z.string(),
+  text: z.string(),
+});
+
+export const EditedChapterSchema = z.object({
+    scenes: z.array(EditedSceneSchema),
+});
+
+export type EditedScene = z.infer<typeof EditedSceneSchema>;
+export type EditedChapter = z.infer<typeof EditedChapterSchema>;
+
 export interface Stat {
   step: string;
   time: number;

@@ -7,6 +7,7 @@ import {
   getSettingsPrompt,
   getChapterScenesPrompt,
   getSceneProsePrompt,
+  getEditChapterPrompt,
   systemPrompts,
 } from './prompts';
 import {
@@ -15,6 +16,7 @@ import {
   CharacterSchema,
   SettingSchema,
   RawSceneSchema,
+  EditedChapterSchema,
   StoryIdea,
   Scene,
   Chapter,
@@ -33,7 +35,6 @@ export async function generateIdeas(context: Context): Promise<StoryIdea[]> {
       context.language
     );
   const ideas = await generate(ideasPrompt, StoryIdeaSchema.array(), systemPrompts.ideas);
-  // console.log(ideas);
   context.stats.push({ step: 'ideas', time: Date.now() - ideasStart });
   return ideas;
 }
@@ -47,21 +48,18 @@ export async function runPipeline(context: Context) {
   const outlineStart = Date.now();
   const outlinePrompt = getOutlinePrompt(context.idea, context.maxChapters, context.language, context.narrativeStructure);
   context.outline = await generate(outlinePrompt, StoryOutlineSchema, systemPrompts.outline);
-  // console.log('OUTLINE: ', context.outline);
   context.stats.push({ step: 'outline', time: Date.now() - outlineStart });
 
   console.log('👥 Generating characters...');
   const charactersStart = Date.now();
   const charactersPrompt = getCharactersPrompt(context.idea, context.language);
   context.characters = await generate(charactersPrompt, CharacterSchema.array(), systemPrompts.characters);
-  // console.log('CHARACTERS: ', context.characters);
   context.stats.push({ step: 'characters', time: Date.now() - charactersStart });
 
   console.log('🏞️ Generating settings...');
   const settingsStart = Date.now();
   const settingsPrompt = getSettingsPrompt(context.idea, context.language);
   context.settings = await generate(settingsPrompt, SettingSchema.array(), systemPrompts.settings);
-  // console.log('SETTINGS:', context.settings);
   context.stats.push({ step: 'settings', time: Date.now() - settingsStart });
 
   console.log('🎬 Generating scenes and prose...');
@@ -75,6 +73,7 @@ export async function runPipeline(context: Context) {
       const rawScenes = await generate(chapterScenesPrompt, RawSceneSchema.array(), systemPrompts.scenes);
       context.stats.push({ step: `chapter-${chapter.number}-scenes`, time: Date.now() - chapterScenesStart });
 
+      let chapterScenes: Scene[] = [];
       let previousScenes: Scene[] = [];
       for (const rawScene of rawScenes) {
         console.log(`    ✍️ Generating prose for scene ${rawScene.number}...`);
@@ -92,10 +91,28 @@ export async function runPipeline(context: Context) {
         );
         const prose = await generate(sceneProsePrompt, z.object({ text: z.string() }), systemPrompts.prose);
         scene.text = prose.text;
-        context.scenes.push(scene);
+        chapterScenes.push(scene);
         previousScenes.push(scene);
         context.stats.push({ step: `chapter-${chapter.number}-scene-${rawScene.number}-prose`, time: Date.now() - sceneProseStart });
       }
+
+      // Edit the entire chapter
+      console.log(`  ✍️ Editing chapter ${chapter.number}...`);
+      const editStart = Date.now();
+      const editPrompt = getEditChapterPrompt(chapter, chapterScenes, context.characters, context.settings, previousChapters, context);
+      const editedChapter = await generate(editPrompt, EditedChapterSchema, systemPrompts.editor);
+      context.stats.push({ step: `chapter-${chapter.number}-edit`, time: Date.now() - editStart });
+
+      // Update the scenes in the context with the edited versions
+      for (const editedScene of editedChapter.scenes) {
+        const sceneToUpdate = chapterScenes.find(s => s.number === editedScene.number);
+        if (sceneToUpdate) {
+          sceneToUpdate.summary = editedScene.summary;
+          sceneToUpdate.text = editedScene.text;
+        }
+      }
+
+      context.scenes.push(...chapterScenes);
       previousChapters.push(chapter);
     }
   }

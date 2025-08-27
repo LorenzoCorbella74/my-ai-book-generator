@@ -7,6 +7,7 @@ import { ollama } from 'ollama-ai-provider-v2';
 import { google } from '@ai-sdk/google';
 import { openai } from '@ai-sdk/openai';
 import { mistral } from '@ai-sdk/mistral';
+import { anthropic } from '@ai-sdk/anthropic';
 
 export async function generate<T>(
   prompt: string,
@@ -19,6 +20,9 @@ export async function generate<T>(
   if (process.env.OPENAI_API_KEY && process.env.OPENAI_MODEL) {
     providerModel = openai(process.env.OPENAI_MODEL);
     console.log(`Using OpenAI model: ${process.env.OPENAI_MODEL}`);
+  } else if (process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_MODEL) {
+    providerModel = anthropic(process.env.ANTHROPIC_MODEL);
+    console.log(`Using Anthropic model: ${process.env.ANTHROPIC_MODEL}`);
   } else if (process.env.MISTRAL_API_KEY && process.env.MISTRAL_MODEL) {
     providerModel = mistral(process.env.MISTRAL_MODEL);
     console.log(`Using Mistral model: ${process.env.MISTRAL_MODEL}`);

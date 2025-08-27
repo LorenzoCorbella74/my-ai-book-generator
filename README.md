@@ -9,29 +9,37 @@ Welcome to **My AI Book Generator**! This app helps you create short books using
 - TypeScript
 - Node.js
 - Zod (for schema validation)
-- Vercel AI SDK (for AI interactions)
-- Ollama (for local AI model hosting)
-- Google Gemini (via `@ai-sdk/google`)
-- OpenAI (via `@ai-sdk/openai`)
-- Mistral (via `@ai-sdk/mistral`)
-### Provider Configuration
+- Vercel AI SDK (for AI interactions) with the following providers:
+  - Ollama (for local AI model hosting)
+  - Google Gemini (via `@ai-sdk/google`)
+  - OpenAI (via `@ai-sdk/openai`)
+  - Mistral (via `@ai-sdk/mistral`)
+  - Anthropic (via `@ai-sdk/anthropic`)
+
+## AI Provider Selection
 
 Create a `.env` file in the project root and add the variables for the provider you want to use. Leave the others blank.
-- **OpenAI**:
+
+ **Open AI**
   - `OPENAI_API_KEY`: Your OpenAI API key.
   - `OPENAI_MODEL`: The model to use (e.g., `gpt-4-turbo`).
 
-- **Mistral**:
+ **Anthropic**
+  - `ANTHROPIC_API_KEY`: Your Anthropic API key.
+  - `ANTHROPIC_MODEL`: The model to use (e.g., `claude-3-opus-20240229`).
+
+ **Mistral**
   - `MISTRAL_API_KEY`: Your Mistral API key.
   - `MISTRAL_MODEL`: The model to use (e.g., `mistral-large-latest`).
 
-- **Google Gemini**:
+ **Google Generative AI**
   - `GOOGLE_GENERATIVE_AI_API_KEY`: Your Google Generative AI API key.
   - `GOOGLE_MODEL`: The model to use (e.g., `gemini-1.5-flash`).
 
-- **Ollama**:
+ **Ollama (local)**
   - If none of the above cloud providers are configured, the app will fall back to using a local Ollama model.
   - `OLLAMA_MODEL`: The model to use (e.g., `llama3.1`, `mistral`). Defaults to `llama3.1` if not set.
+
 
 ## Usage
 Just type in your CMD line:
@@ -40,40 +48,11 @@ Just type in your CMD line:
 > npm start
 ```
 
-## AI Provider Selection
-
-This app supports multiple local and cloud AI providers. The selection is based on which environment variables you have set in your `.env` file. The app checks for providers in the following order of priority:
-
-1.  **OpenAI**
-2.  **Mistral**
-3.  **Google Gemini**
-4.  **Ollama** (Fallback)
 
 
-```
-# Environment variables for My AI Book Generator
-
-# OpenAI (Priority 1)
-OPENAI_API_KEY=
-OPENAI_MODEL=
-
-# Mistral (Priority 2)
-MISTRAL_API_KEY=
-MISTRAL_MODEL=
-
-# Google (Priority 3)
-GOOGLE_GENERATIVE_AI_API_KEY=
-GOOGLE_MODEL=
-
-# Ollama is used if no cloud providers are set.
-OLLAMA_MODEL=llama3.1
-```
-
-This project generates short books using an AI-driven pipeline. The process is modular and consists of the following steps:
 
 ## User Choices
-
-When running the generator, you will be prompted to select:
+This project generates short books using an AI-driven pipeline. The process is modular and the user will be prompted to select:
 
 - **Language**: Choose the language of the book (e.g., English, Italian, Spanish, French).
 - **Genre**: Choose 1-3 genres from an expanded list (e.g., Fantasy, Dystopian, Noir, Slice of Life).
@@ -86,7 +65,7 @@ When running the generator, you will be prompted to select:
 
 All of these choices are used to guide the AI in generating ideas and shaping the story.
 
-### Pipeline Steps
+## Pipeline Steps
 
 The generation process is modular and consists of the following enhanced steps:
 
@@ -98,8 +77,10 @@ The generation process is modular and consists of the following enhanced steps:
     - It receives the full profiles for all characters and settings involved in the scene.
     - It gets a summary of all previous chapters and scenes to maintain **coherence**.
     - It adjusts the **emotional tension** based on the chapter's position in the story, building towards a climax.
+6.  **AI Editing**: After each chapter is written, a specialized "AI Editor" reviews the entire chapter. It checks for consistency against the user's original choices, fixes plot holes or character inconsistencies, removes repetition, and improves the overall prose, acting as a final quality control step.
 
 
+## Output
 All generated files (story, context, stats) are saved in an `/output/<book title>` folder for each book you create.
 
-The pipeline is designed for flexibility and can be adapted for different genres, tones, audiences, and book lengths. All data is structured using JSON schemas for easy validation and further processing.
+The pipeline is designed for flexibility and can be adapted for different **genres**, **tones**, **audiences**, and **book lengths**. All data is structured using JSON schemas for easy validation and further processing.
