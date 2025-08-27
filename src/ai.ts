@@ -38,7 +38,7 @@ export async function generate<T>(
 
   console.log('Prompt: ', prompt);
 
-  const { object } = await generateObject({
+  const { object, usage } = await generateObject({
     model: providerModel,
     prompt,
     schema,
@@ -47,5 +47,5 @@ export async function generate<T>(
     maxTokens: 10000,
   });
 
-  return object;
+  return { object, usage };
 }

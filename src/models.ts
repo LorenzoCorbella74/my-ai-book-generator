@@ -101,6 +101,10 @@ export type EditedChapter = z.infer<typeof EditedChapterSchema>;
 export interface Stat {
   step: string;
   time: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  reasoningTokens?:number;
 }
 
 export interface Context {

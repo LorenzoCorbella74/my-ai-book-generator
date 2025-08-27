@@ -120,16 +120,27 @@ export async function exportContext(context: Context) {
 
 export async function exportStatsMd(context: Context) {
   let markdown = '# Generation Stats\n\n';
-  markdown += '| Step | Time (min)|\n';
-  markdown += '|------|-----------|\n';
+  markdown += '| Step | Time (min) | Prompt Tokens | Completion Tokens | Total Tokens |\n';
+  markdown += '|------|------------|---------------|-------------------|--------------|\n';
   let totalMs = 0;
+  let totalPromptTokens = 0;
+  let totalCompletionTokens = 0;
+  let totalTokens = 0;
+
   for (const stat of context.stats) {
     const minutes = (stat.time / 60000).toFixed(2);
-    markdown += `| ${stat.step} | ${minutes} |\n`;
+    markdown += `| ${stat.step} | ${minutes} | ${stat.inputTokens} | ${stat.outputTokens} | ${stat.totalTokens} |\n`;
     totalMs += stat.time;
+    totalPromptTokens += stat.inputTokens;
+    totalCompletionTokens += stat.outputTokens;
+    totalTokens += stat.totalTokens;
   }
+
   const totalMinutes = (totalMs / 60000).toFixed(2);
   markdown += `\n**Total time:** ${totalMinutes} minutes\n`;
+  markdown += `**Total prompt tokens:** ${(totalPromptTokens / 1_000_000).toFixed(4)}M\n`;
+  markdown += `**Total completion tokens:** ${(totalCompletionTokens / 1_000_000).toFixed(4)}M\n`;
+  markdown += `**Total tokens:** ${(totalTokens / 1_000_000).toFixed(4)}M\n`;
 
   await writeOutputFile(context, 'stats.md', markdown);
 }
