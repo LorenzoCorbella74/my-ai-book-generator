@@ -136,6 +136,8 @@ export interface Stat {
   reasoningTokens?:number;
 }
 
+type ExportFormat ="md" | "docx" | "json" | "stats" | "art_prompts" | "blurb" | "world_bible";
+
 export interface Context {
   genre: string[] | string;
   tone: string[] | string;
@@ -145,6 +147,7 @@ export interface Context {
   language: string;
   maxChapters: number;
   narrativeStructure: string;
+  outputFormats: ExportFormat[];
   idea?: StoryIdea;
   outline?: StoryOutline;
   characters?: Character[];

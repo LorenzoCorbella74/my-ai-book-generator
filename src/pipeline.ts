@@ -1,17 +1,17 @@
 import { generate } from './ai';
 import { z } from 'zod';
-import { 
-  getArtPrompts, 
-  getBlurbPrompt, 
-  getChapterScenesPrompt, 
-  getCharactersPrompt, 
-  getEditChapterPrompt, 
-  getIdeasPrompt, 
-  getOutlinePrompt, 
-  getSceneProsePrompt, 
-  getSettingsPrompt, 
-  getWorldBiblePrompt, 
-  systemPrompts 
+import {
+  getArtPrompts,
+  getBlurbPrompt,
+  getChapterScenesPrompt,
+  getCharactersPrompt,
+  getEditChapterPrompt,
+  getIdeasPrompt,
+  getOutlinePrompt,
+  getSceneProsePrompt,
+  getSettingsPrompt,
+  getWorldBiblePrompt,
+  systemPrompts
 } from './prompts';
 
 import {
@@ -183,57 +183,69 @@ export async function runPipeline(context: Context) {
     }
   }
 
-  console.log('🎨 Generating art prompts...');
-  const artPromptsStart = Date.now();
-  const artPromptText = getArtPrompts(context);
-  const { object: artPrompts, usage: artUsage } = await generate(artPromptText, ArtPromptsSchema, systemPrompts.artDirector);
-  console.log(`  💡 Token usage for art prompts: ${artUsage.totalTokens} tokens`);
-  context.stats.push({
-    step: 'art_prompts',
-    time: Date.now() - artPromptsStart,
-    inputTokens: artUsage.inputTokens ?? 0,
-    outputTokens: artUsage.outputTokens ?? 0,
-    totalTokens: artUsage.totalTokens ?? 0,
-    ...(artUsage.reasoningTokens !== undefined ? { reasoningTokens: artUsage.reasoningTokens } : {}),
-  });
-
-  console.log('📝 Generating blurb...');
-  const blurbStart = Date.now();
-  const blurbPrompt = getBlurbPrompt(context);
-  const { object: blurb, usage: blurbUsage } = await generate(blurbPrompt, BlurbSchema, systemPrompts.marketingCopywriter);
-  console.log(`  💡 Token usage for blurb: ${blurbUsage.totalTokens} tokens`);
-  context.stats.push({
-    step: 'blurb',
-    time: Date.now() - blurbStart,
-    inputTokens: blurbUsage.inputTokens ?? 0,
-    outputTokens: blurbUsage.outputTokens ?? 0,
-    totalTokens: blurbUsage.totalTokens ?? 0,
-    ...(blurbUsage.reasoningTokens !== undefined ? { reasoningTokens: blurbUsage.reasoningTokens } : {}),
-  });
-
   console.log('🚀 Exporting story...');
 
-  await exportStoryMd(context);
-  await exportStoryDocx(context);
-  await exportContext(context);
-  await exportStatsMd(context);
-  await exportArtPromptsMd(context, artPrompts);
-  await exportBlurbMd(context, blurb);
+  if (context.outputFormats.includes('md')) {
+    await exportStoryMd(context);
+  }
+  if (context.outputFormats.includes('docx')) {
+    await exportStoryDocx(context);
+  }
+  if (context.outputFormats.includes('json')) {
+    await exportContext(context);
+  }
+  if (context.outputFormats.includes('stats')) {
+    await exportStatsMd(context);
+  }
 
-  console.log('📖 Generating World Bible...');
-  const worldBibleStart = Date.now();
-  const worldBiblePrompt = getWorldBiblePrompt(context);
-  const { object: worldBible, usage: worldBibleUsage } = await generate(worldBiblePrompt, WorldBibleSchema, systemPrompts.loreKeeper);
-  console.log(`  💡 Token usage for World Bible: ${worldBibleUsage.totalTokens} tokens`);
-  context.stats.push({
-    step: 'world_bible',
-    time: Date.now() - worldBibleStart,
-    inputTokens: worldBibleUsage.inputTokens ?? 0,
-    outputTokens: worldBibleUsage.outputTokens ?? 0,
-    totalTokens: worldBibleUsage.totalTokens ?? 0,
-    ...(worldBibleUsage.reasoningTokens !== undefined ? { reasoningTokens: worldBibleUsage.reasoningTokens } : {}),
-  });
+  if (context.outputFormats.includes('art_prompts')) {
+    console.log('🎨 Generating art prompts...');
+    const artPromptsStart = Date.now();
+    const artPromptText = getArtPrompts(context);
+    const { object: artPrompts, usage: artUsage } = await generate(artPromptText, ArtPromptsSchema, systemPrompts.artDirector);
+    console.log(`  💡 Token usage for art prompts: ${artUsage.totalTokens} tokens`);
+    context.stats.push({
+      step: 'art_prompts',
+      time: Date.now() - artPromptsStart,
+      inputTokens: artUsage.inputTokens ?? 0,
+      outputTokens: artUsage.outputTokens ?? 0,
+      totalTokens: artUsage.totalTokens ?? 0,
+      ...(artUsage.reasoningTokens !== undefined ? { reasoningTokens: artUsage.reasoningTokens } : {}),
+    });
+    await exportArtPromptsMd(context, artPrompts);
+  }
+  if (context.outputFormats.includes('blurb')) {
+    console.log('📝 Generating blurb...');
+    const blurbStart = Date.now();
+    const blurbPrompt = getBlurbPrompt(context);
+    const { object: blurb, usage: blurbUsage } = await generate(blurbPrompt, BlurbSchema, systemPrompts.marketingCopywriter);
+    console.log(`  💡 Token usage for blurb: ${blurbUsage.totalTokens} tokens`);
+    context.stats.push({
+      step: 'blurb',
+      time: Date.now() - blurbStart,
+      inputTokens: blurbUsage.inputTokens ?? 0,
+      outputTokens: blurbUsage.outputTokens ?? 0,
+      totalTokens: blurbUsage.totalTokens ?? 0,
+      ...(blurbUsage.reasoningTokens !== undefined ? { reasoningTokens: blurbUsage.reasoningTokens } : {}),
+    });
+    await exportBlurbMd(context, blurb);
+  }
 
-  await exportWorldBibleMd(context, worldBible);
+  if (context.outputFormats.includes('world_bible')) {
+    console.log('📖 Generating World Bible...');
+    const worldBibleStart = Date.now();
+    const worldBiblePrompt = getWorldBiblePrompt(context);
+    const { object: worldBible, usage: worldBibleUsage } = await generate(worldBiblePrompt, WorldBibleSchema, systemPrompts.loreKeeper);
+    console.log(`  💡 Token usage for World Bible: ${worldBibleUsage.totalTokens} tokens`);
+    context.stats.push({
+      step: 'world_bible',
+      time: Date.now() - worldBibleStart,
+      inputTokens: worldBibleUsage.inputTokens ?? 0,
+      outputTokens: worldBibleUsage.outputTokens ?? 0,
+      totalTokens: worldBibleUsage.totalTokens ?? 0,
+      ...(worldBibleUsage.reasoningTokens !== undefined ? { reasoningTokens: worldBibleUsage.reasoningTokens } : {}),
+    });
+    await exportWorldBibleMd(context, worldBible);
+  }
 }
 

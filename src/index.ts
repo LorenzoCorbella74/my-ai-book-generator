@@ -61,6 +61,20 @@ async function main() {
       default: 5,
     },
     {
+      type: 'checkbox',
+      name: 'outputFormats',
+      message: 'Select desired output formats/files:',
+      choices: [
+        { name: 'Markdown (.md) story', value: 'md', checked: true },
+        { name: 'DOCX (.docx) story', value: 'docx', checked: true },
+        { name: 'Context JSON (.json)', value: 'json', checked: true },
+        { name: 'Stats Markdown (.md)', value: 'stats', checked: true },
+        { name: 'Art Prompts (.md)', value: 'art_prompts', checked: true },
+        { name: 'Back Cover Blurb (.md)', value: 'blurb', checked: true },
+        { name: 'World-Building Bible (.md)', value: 'world_bible', checked: true },
+      ],
+    },
+    {
       type: 'list',
       name: 'narrativeStructure',
       message: 'Select the narrative structure:',
