@@ -13,17 +13,18 @@ export function getIdeasPrompt(
   const styleStr = Array.isArray(style) ? style.join(', ') : style;
   const audienceStr = Array.isArray(targetAudience) ? targetAudience.join(', ') : targetAudience;
   return `
-  Generate 5 unique story ideas for a short story.
+  Generate 5 unique story ideas for a short story each with 6 to 12 characters and 5 to 8 unique settings.
 
   Language: ${language}
-  For each idea, provide a compelling logline, a central conflict, and a core moral dilemma.
-  For each character, provide their primary motivation and a secret they are hiding.
-  
   Genre(s): ${genreStr}
   Tone(s): ${toneStr}
   Rating: ${rating}
   Style(s): ${styleStr}
   Target Audience(s): ${audienceStr}
+
+  For each idea, provide a compelling logline, a central conflict, and a core moral dilemma.
+  For each character, provide their primary motivation and a secret they are hiding.
+  For each setting, provide a brief description that evokes its atmosphere and significance to the plot.
 
   Provide the output in JSON format, following this schema: { "id": number, "title": string, "logline": string, "premise": string, "centralConflict": string, "moralDilemma": string, "mainCharacters": { "name": string, "motivation": string, "secret": string }[], "settings": { "name": string, "description": string }[] }`;
 }

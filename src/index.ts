@@ -17,7 +17,7 @@ async function main() {
       name: 'genre',
       message: 'Select the genre(s) of the story (choose 1-3):',
       choices: [
-        'Fantasy','Science Fiction','Mystery','Historical','Horror','Romance','Adventure','Cyberpunk','Steampunk','Magical Realism','Thriller','Comedy'
+        'Fantasy', 'Science Fiction', 'Mystery', 'Historical', 'Horror', 'Romance', 'Adventure', 'Cyberpunk', 'Steampunk', 'Magical Realism', 'Thriller', 'Comedy'
       ],
       validate: (input: string[]) => input.length >= 1 && input.length <= 3 ? true : 'Select between 1 and 3 genres.'
     },
@@ -26,7 +26,7 @@ async function main() {
       name: 'tone',
       message: 'Select the tone(s) of the story (choose 1-3):',
       choices: [
-        'Epic','Dark','Lighthearted','Suspenseful','Whimsical','Melancholic','Satirical','Uplifting'
+        'Epic', 'Dark', 'Lighthearted', 'Suspenseful', 'Whimsical', 'Melancholic', 'Satirical', 'Uplifting'
       ],
       validate: (input: string[]) => input.length >= 1 && input.length <= 3 ? true : 'Select between 1 and 3 tones.'
     },
@@ -41,7 +41,7 @@ async function main() {
       name: 'style',
       message: 'Select the writing style(s) of the story (choose 1-3):',
       choices: [
-        'Clear and concise','Descriptive and poetic','Fast-paced and action-packed','Dialogue-driven','First-person narrative','Stream of consciousness','Minimalist','Classic literature'
+        'Clear and concise', 'Descriptive and poetic', 'Fast-paced and action-packed', 'Dialogue-driven', 'First-person narrative', 'Stream of consciousness', 'Minimalist', 'Classic literature'
       ],
       validate: (input: string[]) => input.length >= 1 && input.length <= 3 ? true : 'Select between 1 and 3 styles.'
     },
@@ -78,7 +78,18 @@ async function main() {
       type: 'list',
       name: 'narrativeStructure',
       message: 'Select the narrative structure:',
-      choices: ['Three-Act Structure', 'The Hero\'s Journey', 'Fichtean Curve', 'Save the Cat!', 'Seven-Point Story Structure', 'In Medias Res', 'Freytag\'s Pyramid', 'The Snowflake Method', 'Kishōtenketsu', 'Non-linear Narrative'],
+      choices: [
+        'Three-Act Structure',
+        'The Hero\'s Journey',
+        'Fichtean Curve',
+        'Save the Cat!',
+        'Seven-Point Story Structure',
+        'In Medias Res',
+        'Freytag\'s Pyramid',
+        /* 'The Snowflake Method', */
+        'Kishōtenketsu',
+        'Non-linear Narrative'
+      ],
       default: 'Three-Act Structure',
     }
   ]);
