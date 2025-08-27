@@ -1,6 +1,18 @@
 import { generate } from './ai';
 import { z } from 'zod';
-import { getArtPrompts, getEditChapterPrompt, getSceneProsePrompt, systemPrompts } from './prompts';
+import { 
+  getArtPrompts, 
+  getBlurbPrompt, 
+  getChapterScenesPrompt, 
+  getCharactersPrompt, 
+  getEditChapterPrompt, 
+  getIdeasPrompt, 
+  getOutlinePrompt, 
+  getSceneProsePrompt, 
+  getSettingsPrompt, 
+  systemPrompts 
+} from './prompts';
+
 import {
   StoryIdeaSchema,
   StoryOutlineSchema,
@@ -12,6 +24,8 @@ import {
   Scene,
   Chapter,
   Context,
+  BlurbSchema,
+  ArtPromptsSchema,
 } from './models';
 import { exportContext, exportStatsMd, exportStoryDocx, exportStoryMd, exportArtPromptsMd, exportBlurbMd } from './export';
 
@@ -167,9 +181,19 @@ export async function runPipeline(context: Context) {
     }
   }
 
-  console.log('🚀 Exporting story...');
-
-  await exportArtPromptsMd(context, artPrompts);
+  console.log('🎨 Generating art prompts...');
+  const artPromptsStart = Date.now();
+  const artPromptText = getArtPrompts(context);
+  const { object: artPrompts, usage: artUsage } = await generate(artPromptText, ArtPromptsSchema, systemPrompts.artDirector);
+  console.log(`  💡 Token usage for art prompts: ${artUsage.totalTokens} tokens`);
+  context.stats.push({
+    step: 'art_prompts',
+    time: Date.now() - artPromptsStart,
+    inputTokens: artUsage.inputTokens ?? 0,
+    outputTokens: artUsage.outputTokens ?? 0,
+    totalTokens: artUsage.totalTokens ?? 0,
+    ...(artUsage.reasoningTokens !== undefined ? { reasoningTokens: artUsage.reasoningTokens } : {}),
+  });
 
   console.log('📝 Generating blurb...');
   const blurbStart = Date.now();
@@ -185,6 +209,13 @@ export async function runPipeline(context: Context) {
     ...(blurbUsage.reasoningTokens !== undefined ? { reasoningTokens: blurbUsage.reasoningTokens } : {}),
   });
 
+  console.log('🚀 Exporting story...');
+
+  await exportStoryMd(context);
+  await exportStoryDocx(context);
+  await exportContext(context);
+  await exportStatsMd(context);
+  await exportArtPromptsMd(context, artPrompts);
   await exportBlurbMd(context, blurb);
 }
 

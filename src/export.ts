@@ -57,65 +57,65 @@ export async function exportStoryMd(context: Context) {
 }
 
 export async function exportStoryDocx(context: Context) {
-    if (!context.outline || !context.scenes) {
-      return;
-    }
-  
-    const children = [
-      new Paragraph({
-        text: context.outline.title,
-        heading: HeadingLevel.TITLE,
-      }),
-    ];
-  
-    for (const chapter of context.outline.chapters) {
-      children.push(
-        new Paragraph({
-          text: `Chapter ${chapter.number}: ${chapter.title}`,
-          heading: HeadingLevel.HEADING_1,
-        })
-      );
-  
-      const chapterScenes = context.scenes.filter((s) => s.chapterNumber === chapter.number);
-      for (const scene of chapterScenes) {
-        children.push(
-          new Paragraph({
-            text: `Scene ${scene.number}: ${scene.title}`,
-            heading: HeadingLevel.HEADING_2,
-          })
-        );
-        // Split scene text into paragraphs
-        const sceneParagraphs = scene.text ? scene.text.split('\n').filter(p => p.trim() !== '') : [];
-        for (const paragraphText of sceneParagraphs) {
-            children.push(
-                new Paragraph({
-                    children: [new TextRun({
-                      text:paragraphText,
-                      font: "Calibri",
-                      size: 24, // 12 points
-                    })],
-                    spacing: { after: 200 },
-                     alignment: AlignmentType.JUSTIFIED,
-                })
-            );
-        }
-      }
-    }
-
-  
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children,
-      }],
-    });
-  
-    const buffer = await Packer.toBuffer(doc);
-    await writeOutputFile(context, 'story.docx', buffer);
+  if (!context.outline || !context.scenes) {
+    return;
   }
 
+  const children = [
+    new Paragraph({
+      text: context.outline.title,
+      heading: HeadingLevel.TITLE,
+    }),
+  ];
+
+  for (const chapter of context.outline.chapters) {
+    children.push(
+      new Paragraph({
+        text: `Chapter ${chapter.number}: ${chapter.title}`,
+        heading: HeadingLevel.HEADING_1,
+      })
+    );
+
+    const chapterScenes = context.scenes.filter((s) => s.chapterNumber === chapter.number);
+    for (const scene of chapterScenes) {
+      children.push(
+        new Paragraph({
+          text: `Scene ${scene.number}: ${scene.title}`,
+          heading: HeadingLevel.HEADING_2,
+        })
+      );
+      // Split scene text into paragraphs
+      const sceneParagraphs = scene.text ? scene.text.split('\n').filter(p => p.trim() !== '') : [];
+      for (const paragraphText of sceneParagraphs) {
+        children.push(
+          new Paragraph({
+            children: [new TextRun({
+              text: paragraphText,
+              font: "Calibri",
+              size: 24, // 12 points
+            })],
+            spacing: { after: 200 },
+            alignment: AlignmentType.JUSTIFIED,
+          })
+        );
+      }
+    }
+  }
+
+
+  const doc = new Document({
+    sections: [{
+      properties: {},
+      children,
+    }],
+  });
+
+  const buffer = await Packer.toBuffer(doc);
+  await writeOutputFile(context, 'story.docx', buffer);
+}
+
 export async function exportContext(context: Context) {
-    await writeOutputFile(context, 'context.json', JSON.stringify(context, null, 2));
+  await writeOutputFile(context, 'context.json', JSON.stringify(context, null, 2));
 }
 
 export async function exportStatsMd(context: Context) {
@@ -157,3 +157,11 @@ export async function exportArtPromptsMd(context: Context, artPrompts: ArtPrompt
 
   await writeOutputFile(context, 'art_prompts.md', markdown);
 }
+
+export async function exportBlurbMd(context: Context, blurb: Blurb) {
+  let markdown = '# Back Cover Blurb\n\n';
+  markdown += `## ${blurb.tagline}\n\n`;
+  markdown += `${blurb.blurb}\n`;
+
+  await writeOutputFile(context, 'back_cover_blurb.md', markdown);
+}    
