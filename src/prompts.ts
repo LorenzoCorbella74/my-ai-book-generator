@@ -264,7 +264,60 @@ export function getEditChapterPrompt(
     Provide the output in JSON format, following this schema: { "scenes": [{ "number": number, "title": string, "summary": string, "text": string }] }`;
   }
 
+export function getArtPrompts(context: Context): string {
+    const genreStr = Array.isArray(context.genre) ? context.genre.join(', ') : context.genre;
+    const toneStr = Array.isArray(context.tone) ? context.tone.join(', ') : context.tone;
+    const styleStr = Array.isArray(context.style) ? context.style.join(', ') : context.style;
+
+    const characterSummary = context.characters?.map(c => `${c.name}: ${c.description}`).join('\n');
+    const settingSummary = context.settings?.map(s => `${s.name}: ${s.description}`).join('\n');
+    const plotSummary = context.outline?.chapters.map(c => c.summary).join(' ');
+
+    return `
+    Based on the following story details, generate a detailed, evocative, and powerful text-to-image prompt for the book cover art. Then, generate 3 separate prompts for key scenes in the story.
+
+    **Story Details:**
+    - **Title:** ${context.idea?.title}
+    - **Genre:** ${genreStr}
+    - **Tone:** ${toneStr}
+    - **Style:** ${styleStr}
+    - **Plot Summary:** ${plotSummary}
+    - **Main Characters:**\n${characterSummary}
+    - **Key Settings:**\n${settingSummary}
+
+    **Instructions:**
+    1.  **Cover Art Prompt:** Create a single, detailed prompt for the book cover. It should capture the main character, the primary setting, and the overall mood of the story. Include details about art style, color palette, lighting, and composition.
+    2.  **Key Scene Prompts:** Identify 3 pivotal or visually interesting scenes from the plot summary. For each, create a detailed prompt that describes the action, characters involved, setting, and emotional tone of the scene.
+
+    Provide the output in JSON format, following this schema: { "cover_prompt": string, "scene_prompts": [{ "scene_title": string, "prompt": string }] }`;
+}
+
+export function getBlurbPrompt(context: Context): string {
+    const genreStr = Array.isArray(context.genre) ? context.genre.join(', ') : context.genre;
+    const toneStr = Array.isArray(context.tone) ? context.tone.join(', ') : context.tone;
+
+    const characterSummary = context.characters?.map(c => `${c.name}: ${c.description}`).join('\n');
+    const plotSummary = context.outline?.chapters.map(c => c.summary).join(' ');
+
+    return `
+    Based on the following story details, write the back cover copy for the book.
+
+    **Story Details:**
+    - **Title:** ${context.idea?.title}
+    - **Genre:** ${genreStr}
+    - **Tone:** ${toneStr}
+    - **Plot Summary:** ${plotSummary}
+    - **Main Characters:**\n${characterSummary}
+
+    **Instructions:**
+    1.  **Tagline:** Write a single, catchy tagline for the book.
+    2.  **Blurb:** Write a compelling blurb of 150-200 words. It should introduce the main character, the central conflict, and the stakes, but it must not reveal the ending.
+
+    Provide the output in JSON format, following this schema: { "tagline": string, "blurb": string }`;
+}
+
 export const systemPrompts = {
+
   ideas: `
   You are a brainstorming genius specializing in high-concept, unexpected twists. 
   Your mission is to generate ideas that break genre conventions, featuring complex characters and moral dilemmas.`,

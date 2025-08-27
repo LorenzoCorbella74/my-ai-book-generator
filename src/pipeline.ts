@@ -1,15 +1,6 @@
 import { generate } from './ai';
 import { z } from 'zod';
-import {
-  getIdeasPrompt,
-  getOutlinePrompt,
-  getCharactersPrompt,
-  getSettingsPrompt,
-  getChapterScenesPrompt,
-  getSceneProsePrompt,
-  getEditChapterPrompt,
-  systemPrompts,
-} from './prompts';
+import { getArtPrompts, getEditChapterPrompt, getSceneProsePrompt, systemPrompts } from './prompts';
 import {
   StoryIdeaSchema,
   StoryOutlineSchema,
@@ -22,7 +13,7 @@ import {
   Chapter,
   Context,
 } from './models';
-import { exportStoryMd, exportStoryDocx, exportContext, exportStatsMd } from './export';
+import { exportContext, exportStatsMd, exportStoryDocx, exportStoryMd, exportArtPromptsMd, exportBlurbMd } from './export';
 
 export async function generateIdeas(context: Context): Promise<StoryIdea[]> {
   const ideasStart = Date.now();
@@ -178,9 +169,22 @@ export async function runPipeline(context: Context) {
 
   console.log('🚀 Exporting story...');
 
-  await exportStoryMd(context);
-  await exportStoryDocx(context);
-  await exportContext(context);
-  await exportStatsMd(context);
+  await exportArtPromptsMd(context, artPrompts);
+
+  console.log('📝 Generating blurb...');
+  const blurbStart = Date.now();
+  const blurbPrompt = getBlurbPrompt(context);
+  const { object: blurb, usage: blurbUsage } = await generate(blurbPrompt, BlurbSchema, systemPrompts.marketingCopywriter);
+  console.log(`  💡 Token usage for blurb: ${blurbUsage.totalTokens} tokens`);
+  context.stats.push({
+    step: 'blurb',
+    time: Date.now() - blurbStart,
+    inputTokens: blurbUsage.inputTokens ?? 0,
+    outputTokens: blurbUsage.outputTokens ?? 0,
+    totalTokens: blurbUsage.totalTokens ?? 0,
+    ...(blurbUsage.reasoningTokens !== undefined ? { reasoningTokens: blurbUsage.reasoningTokens } : {}),
+  });
+
+  await exportBlurbMd(context, blurb);
 }
 

@@ -98,6 +98,26 @@ export const EditedChapterSchema = z.object({
 export type EditedScene = z.infer<typeof EditedSceneSchema>;
 export type EditedChapter = z.infer<typeof EditedChapterSchema>;
 
+export const ArtScenePromptSchema = z.object({
+  scene_title: z.string(),
+  prompt: z.string(),
+});
+
+export const ArtPromptsSchema = z.object({
+  cover_prompt: z.string(),
+  scene_prompts: z.array(ArtScenePromptSchema),
+});
+
+export type ArtScenePrompt = z.infer<typeof ArtScenePromptSchema>;
+export type ArtPrompts = z.infer<typeof ArtPromptsSchema>;
+
+export const BlurbSchema = z.object({
+  tagline: z.string(),
+  blurb: z.string(),
+});
+
+export type Blurb = z.infer<typeof BlurbSchema>;
+
 export interface Stat {
   step: string;
   time: number;

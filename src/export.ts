@@ -1,6 +1,6 @@
 import * as fs from 'fs/promises';
 import { Document, Packer, Paragraph, HeadingLevel, TextRun, Styles, AlignmentType } from 'docx';
-import { Context } from './models';
+import { Context, ArtPrompts, Blurb } from './models';
 
 // Helper to write files in output/<book title> folder
 async function writeOutputFile(context: Context, filename: string, data: string | Buffer) {
@@ -143,4 +143,17 @@ export async function exportStatsMd(context: Context) {
   markdown += `**Total tokens:** ${(totalTokens / 1_000_000).toFixed(4)}M\n`;
 
   await writeOutputFile(context, 'stats.md', markdown);
+}
+
+export async function exportArtPromptsMd(context: Context, artPrompts: ArtPrompts) {
+  let markdown = '# Art Prompts\n\n';
+  markdown += '## Cover Art Prompt\n\n';
+  markdown += `${artPrompts.cover_prompt}\n\n`;
+  markdown += '## Scene Art Prompts\n\n';
+  for (const scenePrompt of artPrompts.scene_prompts) {
+    markdown += `### ${scenePrompt.scene_title}\n\n`;
+    markdown += `${scenePrompt.prompt}\n\n`;
+  }
+
+  await writeOutputFile(context, 'art_prompts.md', markdown);
 }

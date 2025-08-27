@@ -83,6 +83,12 @@ The generation process is modular and consists of the following enhanced steps:
 
 
 ## Output
-All generated files (story, context, stats) are saved in an `/output/<book title>` folder for each book you create.
+All generated files are saved in an `/output/<book title>` folder for each book you create. This includes:
+- `story.md`: The full book in Markdown format.
+- `story.docx`: The full book in DOCX format.
+- `context.json`: A JSON file containing all the generated data (ideas, outline, characters, etc.).
+- `stats.md`: Detailed statistics about the generation process, including token usage.
+- `art_prompts.md`: Ready-to-use prompts for generating cover art and scene illustrations.
+- `back_cover_blurb.md`: A compelling blurb and tagline for the book.
 
 The pipeline is designed for flexibility and can be adapted for different **genres**, **tones**, **audiences**, and **book lengths**. All data is structured using JSON schemas for easy validation and further processing.
