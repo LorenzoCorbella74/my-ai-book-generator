@@ -1,5 +1,5 @@
 import * as fs from 'fs/promises';
-import { Document, Packer, Paragraph, HeadingLevel, TextRun, Styles, AlignmentType } from 'docx';
+import { Document, Packer, Paragraph, HeadingLevel, TextRun, Styles, AlignmentType, PageBreak } from 'docx';
 import { Context, ArtPrompts, Blurb, WorldBible } from './models';
 
 // Helper to write files in output/<book title> folder
@@ -65,11 +65,14 @@ export async function exportStoryDocx(context: Context) {
     new Paragraph({
       text: context.outline.title,
       heading: HeadingLevel.TITLE,
-      spacing: { after: 600 },
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 600 },
     }),
+    new Paragraph({ children: [new PageBreak()] })
   ];
 
-  for (const chapter of context.outline.chapters) {
+  for (let i = 0; i < context.outline.chapters.length; i++) { // Use index for checking last chapter
+    const chapter = context.outline.chapters[i];
     children.push(
       new Paragraph({
         text: `Chapter ${chapter.number}: ${chapter.title}`,
@@ -101,6 +104,11 @@ export async function exportStoryDocx(context: Context) {
           })
         );
       }
+    }
+
+    // Add page break after each chapter, except the last one
+    if (i < context.outline.chapters.length - 1) {
+      children.push(new Paragraph({ children: [new PageBreak()] }));
     }
   }
 
