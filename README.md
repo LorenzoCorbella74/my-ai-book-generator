@@ -49,7 +49,7 @@ Just type in your CMD line:
 > npm install
 > npm start
 ```
-
+** PLEASE NOTE: it works with gemini-2.5-flash, it has problems with Openai gpt-4.1 (the worst) or Mistral mistral-medium-2505 (2° place) when the structured output is array and not object**
 
 
 

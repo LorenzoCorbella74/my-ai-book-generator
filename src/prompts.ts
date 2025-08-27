@@ -110,8 +110,7 @@ export function getChapterScenesPrompt(chapter: Chapter, characters: Character[]
 
   For each scene, define its primary purpose (e.g., reveal a clue, raise the stakes, develop a relationship), and list the characters and settings involved.
 
-  Provide the output in JSON format, following this schema: 
-  { "number": number, "title": string, "summary": string, "purpose": string, "characters": string[], "settings": string[] }`;
+  Provide the output in JSON format, following this schema: { "number": number, "title": string, "summary": string, "purpose": string, "characters": string[], "settings": string[] }`;
 }
 
 export function getSceneProsePrompt(

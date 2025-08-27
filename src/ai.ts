@@ -9,13 +9,8 @@ import { openai } from '@ai-sdk/openai';
 import { mistral } from '@ai-sdk/mistral';
 import { anthropic } from '@ai-sdk/anthropic';
 
-export async function generate<T>(
-  prompt: string,
-  schema: z.ZodType<T>,
-  system?: string
-) {
+function getModel(){
   let providerModel;
-
   // Provider selection based on environment variables
   if (process.env.OPENAI_API_KEY && process.env.OPENAI_MODEL) {
     providerModel = openai(process.env.OPENAI_MODEL);
@@ -36,15 +31,39 @@ export async function generate<T>(
     console.log(`Using Ollama model: ${ollamaModel}`);
   }
 
-  console.log('Prompt: ', prompt);
+  return providerModel;
+}
 
+export async function generate<T>(
+  prompt: string,
+  schema: z.ZodType<T>,
+  system?: string
+) {
+  console.log('Prompt: ', prompt);
   const { object, usage } = await generateObject({
-    model: providerModel,
+    model: getModel(),
     prompt,
     schema,
     system,
     temperature: 0.9,
     maxTokens: 10000,
+  });
+
+  return { object, usage };
+}
+export async function generateArray<T>(
+  prompt: string,
+  schema: z.ZodType<T>,
+  system?: string
+) {
+  console.log('Prompt: ', prompt);
+  const { object, usage } = await generateObject({
+    model: getModel(),
+    prompt,
+    schema,
+    system,
+    temperature: 0.9,
+    output: 'array'
   });
 
   return { object, usage };

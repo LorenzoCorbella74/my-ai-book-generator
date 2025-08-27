@@ -1,4 +1,4 @@
-import { generate } from './ai';
+import { generate, generateArray } from './ai';
 import { z } from 'zod';
 import {
   getArtPrompts,
@@ -41,7 +41,7 @@ export async function generateIdeas(context: Context): Promise<StoryIdea[]> {
     context.targetAudience,
     context.language
   );
-  const { object: ideas, usage } = await generate(ideasPrompt, StoryIdeaSchema.array(), systemPrompts.ideas);
+  const { object: ideas, usage } = await generateArray(ideasPrompt, StoryIdeaSchema, systemPrompts.ideas);
   console.log(`  💡 Token usage for ideas: ${usage.totalTokens} tokens`);
   context.stats.push({
     step: 'ideas',
@@ -77,7 +77,7 @@ export async function runPipeline(context: Context) {
   console.log('👥 Generating characters...');
   const charactersStart = Date.now();
   const charactersPrompt = getCharactersPrompt(context.idea, context.language);
-  const { object: characters, usage: charactersUsage } = await generate(charactersPrompt, CharacterSchema.array(), systemPrompts.characters);
+  const { object: characters, usage: charactersUsage } = await generateArray(charactersPrompt, CharacterSchema, systemPrompts.characters);
   context.characters = characters;
   console.log(`  💡 Token usage for characters: ${charactersUsage.totalTokens} tokens`);
   context.stats.push({
@@ -92,7 +92,7 @@ export async function runPipeline(context: Context) {
   console.log('🏞️ Generating settings...');
   const settingsStart = Date.now();
   const settingsPrompt = getSettingsPrompt(context.idea, context.language);
-  const { object: settings, usage: settingsUsage } = await generate(settingsPrompt, SettingSchema.array(), systemPrompts.settings);
+  const { object: settings, usage: settingsUsage } = await generateArray(settingsPrompt, SettingSchema, systemPrompts.settings);
   context.settings = settings;
   console.log(`  💡 Token usage for settings: ${settingsUsage.totalTokens} tokens`);
   context.stats.push({

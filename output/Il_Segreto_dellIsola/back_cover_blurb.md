@@ -1,0 +1,5 @@
+# Back Cover Blurb
+
+## Un tesoro nascosto, un'isola misteriosa, un segreto che potrebbe distruggere l'umanità.
+
+Quando un gruppo di esploratori, guidati dal carismatico Fabio, sbarca su un'isola misteriosa, non sanno che la loro missione alla ricerca di un tesoro leggendario li porterà ben oltre ciò che avevano immaginato. Tra loro ci sono Silvia, una scienziata scettica, Giorgio, un avventuriero entusiasta, e una serie di esperti nei loro campi, ognuno con i propri segreti e le proprie paure. Mentre esplorano l'isola, scoprono antichi simboli, trappole mortali e leggende di un male nascosto. Ma ciò che trovano nel cuore dell'isola è ben più pericoloso di un tesoro: una tecnologia antica in grado di controllare le menti. Con l'isola che inizia a crollare intorno a loro e le loro menti sotto attacco, il gruppo deve unire le forze per svelare il segreto dell'isola e salvare l'umanità. In una corsa contro il tempo, dovranno affrontare non solo i pericoli dell'isola, ma anche i demoni interiori che minacciano di distruggerli. Il Segreto dell'Isola è un'avventura epica che vi terrà con il fiato sospeso fino all'ultima pagina.

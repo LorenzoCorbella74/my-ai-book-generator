@@ -1,0 +1,5 @@
+# Back Cover Blurb
+
+## Silence has fallen. A timid heart must sing the world back to life.
+
+In the tranquil village of Radicantica, at the edge of the once-vibrant Whispering Woods, a terrible silence has fallen. The ancient forest, source of all magic and song, is now hushed, and with each passing day, the colors of the world begin to fade. Elian, a timid young man, is the only one who still hears the faint, ghost-like echoes of a lost melody.When the wise Nonna Elara reveals an ancient prophecy, Elian learns he is the last hope. Armed with an ancestral amulet and a courage he never knew he possessed, he must venture into the heart of the desolate woods to find the Source of the Song. Along the way, he encounters Faelan, a wary woodsman who becomes an unlikely ally. But their quest uncovers a truth far more sinister than a lost tune: the song has been actively suppressed, its magic drained by a shadowy entity that holds the forest's very soul captive. Elian's journey will test the limits of his spirit against an encroaching darkness. Can a timid boy, guided by a whisper, reawaken the world's harmony before silence consumes all?
