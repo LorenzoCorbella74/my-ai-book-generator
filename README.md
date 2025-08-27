@@ -2,6 +2,8 @@
 
 # My AI Book Generator 📚
 
+![screen](./doc/screen.png)
+
 Welcome to **My AI Book Generator**! This app helps you create short books using AI, with customizable languages, genres, tones, styles, and target audiences.
 
 ## Technologies Used

@@ -1,5 +1,5 @@
 import * as fs from 'fs/promises';
-import { Document, Packer, Paragraph, HeadingLevel, TextRun } from 'docx';
+import { Document, Packer, Paragraph, HeadingLevel, TextRun, Styles, AlignmentType } from 'docx';
 import { Context } from './models';
 
 // Helper to write files in output/<book title> folder
@@ -89,12 +89,19 @@ export async function exportStoryDocx(context: Context) {
         for (const paragraphText of sceneParagraphs) {
             children.push(
                 new Paragraph({
-                    children: [new TextRun(paragraphText)],
+                    children: [new TextRun({
+                      text:paragraphText,
+                      font: "Calibri",
+                      size: 24, // 12 points
+                    })],
+                    spacing: { after: 200 },
+                     alignment: AlignmentType.JUSTIFIED,
                 })
             );
         }
       }
     }
+
   
     const doc = new Document({
       sections: [{
